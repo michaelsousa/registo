@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Users, Clock, MapPin, Search, LogOut, ArrowLeft, Calendar, Shield, UserCheck, UserX, Wallet,
+  Users, Clock, MapPin, Search, LogOut, ArrowLeft, Calendar, Shield, UserCheck, UserX, Wallet, Settings,
 } from "lucide-react";
 import { WalletDashboard } from "@/components/admin/WalletDashboard";
+import { UserSettingsManager } from "@/components/admin/UserSettingsManager";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -176,6 +177,9 @@ export default function AdminPage() {
               )}
             </TabsTrigger>
             <TabsTrigger value="entries">Registros de Ponto</TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="w-4 h-4 mr-1" /> Configurações
+            </TabsTrigger>
             <TabsTrigger value="wallet">
               <Wallet className="w-4 h-4 mr-1" /> Carteira
             </TabsTrigger>
@@ -367,6 +371,10 @@ export default function AdminPage() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+          {/* Settings Tab */}
+          <TabsContent value="settings">
+            <UserSettingsManager />
           </TabsContent>
           {/* Wallet Tab */}
           <TabsContent value="wallet">
