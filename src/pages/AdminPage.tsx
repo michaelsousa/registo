@@ -6,38 +6,24 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Users,
-  Clock,
-  MapPin,
-  Search,
-  LogOut,
-  ArrowLeft,
-  Calendar,
-  Shield,
+  Users, Clock, MapPin, Search, LogOut, ArrowLeft, Calendar, Shield, UserCheck, UserX,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
-interface ProfileWithEntries {
+interface ProfileRow {
   user_id: string;
   full_name: string | null;
   department: string | null;
   position: string | null;
+  approved: boolean;
 }
 
 interface TimeEntryRow {
@@ -51,34 +37,24 @@ interface TimeEntryRow {
 }
 
 export default function AdminPage() {
-  const { signOut, user } = useAuth();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
-  const [profiles, setProfiles] = useState<ProfileWithEntries[]>([]);
+  const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [entries, setEntries] = useState<TimeEntryRow[]>([]);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [dateFilter, setDateFilter] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [dateFilter, setDateFilter] = useState(new Date().toISOString().split("T")[0]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchProfiles();
-  }, []);
-
-  useEffect(() => {
-    fetchEntries();
-  }, [selectedUser, dateFilter]);
+  useEffect(() => { fetchProfiles(); }, []);
+  useEffect(() => { fetchEntries(); }, [selectedUser, dateFilter]);
 
   const fetchProfiles = async () => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("user_id, full_name, department, position");
-    if (error) {
-      toast.error("Erro ao carregar usuários");
-      return;
-    }
-    setProfiles(data || []);
+      .select("user_id, full_name, department, position, approved");
+    if (error) { toast.error("Erro ao carregar usuários"); return; }
+    setProfiles((data as ProfileRow[]) || []);
     setLoading(false);
   };
 
@@ -89,17 +65,23 @@ export default function AdminPage() {
       .gte("timestamp", `${dateFilter}T00:00:00`)
       .lte("timestamp", `${dateFilter}T23:59:59`)
       .order("timestamp", { ascending: false });
-
-    if (selectedUser) {
-      query = query.eq("user_id", selectedUser);
-    }
-
+    if (selectedUser) query = query.eq("user_id", selectedUser);
     const { data, error } = await query;
+    if (error) { toast.error("Erro ao carregar registros"); return; }
+    setEntries((data as TimeEntryRow[]) || []);
+  };
+
+  const handleApproval = async (userId: string, approved: boolean) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ approved })
+      .eq("user_id", userId);
     if (error) {
-      toast.error("Erro ao carregar registros");
+      toast.error("Erro ao atualizar aprovação");
       return;
     }
-    setEntries((data as TimeEntryRow[]) || []);
+    toast.success(approved ? "Usuário aprovado!" : "Usuário reprovado.");
+    fetchProfiles();
   };
 
   const getUserName = (userId: string) => {
@@ -114,12 +96,13 @@ export default function AdminPage() {
       p.department?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const pendingProfiles = filteredProfiles.filter((p) => !p.approved);
+  const approvedProfiles = filteredProfiles.filter((p) => p.approved);
   const totalEntradas = entries.filter((e) => e.type === "entrada").length;
   const totalSaidas = entries.filter((e) => e.type === "saída").length;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="glass border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
@@ -136,8 +119,8 @@ export default function AdminPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
-        {/* Stats cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -146,6 +129,17 @@ export default function AdminPage() {
               <div>
                 <p className="text-2xl font-heading font-bold">{profiles.length}</p>
                 <p className="text-sm text-muted-foreground">Colaboradores</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-warning/10 flex items-center justify-center">
+                <UserX className="w-6 h-6 text-warning" />
+              </div>
+              <div>
+                <p className="text-2xl font-heading font-bold">{pendingProfiles.length}</p>
+                <p className="text-sm text-muted-foreground">Pendentes</p>
               </div>
             </CardContent>
           </Card>
@@ -173,122 +167,204 @@ export default function AdminPage() {
           </Card>
         </div>
 
-        {/* Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-heading">Filtros</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-4">
-            <div className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar colaborador..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div className="w-[200px]">
-              <Select
-                value={selectedUser || "all"}
-                onValueChange={(v) => setSelectedUser(v === "all" ? null : v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos os usuários" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {filteredProfiles.map((p) => (
-                    <SelectItem key={p.user_id} value={p.user_id}>
-                      {p.full_name || "Sem nome"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              <Input
-                type="date"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-                className="w-[160px]"
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="users" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="users">
+              Usuários {pendingProfiles.length > 0 && (
+                <Badge variant="destructive" className="ml-2 text-xs">{pendingProfiles.length}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="entries">Registros de Ponto</TabsTrigger>
+          </TabsList>
 
-        {/* Entries table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-heading">
-              Registros de Ponto — {new Date(dateFilter + "T12:00:00").toLocaleDateString("pt-BR")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {entries.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                Nenhum registro encontrado para esta data.
-              </p>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Colaborador</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Horário</TableHead>
-                      <TableHead>Localização</TableHead>
-                      <TableHead>Foto</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {entries.map((entry) => (
-                      <TableRow key={entry.id}>
-                        <TableCell className="font-medium">
-                          {getUserName(entry.user_id)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={entry.type === "entrada" ? "default" : "destructive"}
-                          >
-                            {entry.type}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(entry.timestamp).toLocaleTimeString("pt-BR", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit",
-                          })}
-                        </TableCell>
-                        <TableCell>
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <MapPin className="w-3 h-3" />
-                            {entry.latitude.toFixed(4)}, {entry.longitude.toFixed(4)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {entry.photo_url ? (
-                            <img
-                              src={entry.photo_url}
-                              alt="Registro"
-                              className="w-8 h-8 rounded-full object-cover border border-border"
-                            />
-                          ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
-                          )}
-                        </TableCell>
+          {/* Users Tab */}
+          <TabsContent value="users" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-heading">Gerenciar Usuários</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar colaborador..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                {pendingProfiles.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                      <UserX className="w-4 h-4" /> Pendentes de aprovação
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Nome</TableHead>
+                            <TableHead>Departamento</TableHead>
+                            <TableHead>Cargo</TableHead>
+                            <TableHead>Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {pendingProfiles.map((p) => (
+                            <TableRow key={p.user_id}>
+                              <TableCell className="font-medium">{p.full_name || "Sem nome"}</TableCell>
+                              <TableCell>{p.department || "—"}</TableCell>
+                              <TableCell>{p.position || "—"}</TableCell>
+                              <TableCell>
+                                <div className="flex gap-2">
+                                  <Button size="sm" onClick={() => handleApproval(p.user_id, true)}>
+                                    <UserCheck className="w-4 h-4 mr-1" /> Aprovar
+                                  </Button>
+                                  <Button size="sm" variant="outline" onClick={() => handleApproval(p.user_id, false)}>
+                                    Rejeitar
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                  <UserCheck className="w-4 h-4" /> Aprovados ({approvedProfiles.length})
+                </h3>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Departamento</TableHead>
+                        <TableHead>Cargo</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Ações</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {approvedProfiles.map((p) => (
+                        <TableRow key={p.user_id}>
+                          <TableCell className="font-medium">{p.full_name || "Sem nome"}</TableCell>
+                          <TableCell>{p.department || "—"}</TableCell>
+                          <TableCell>{p.position || "—"}</TableCell>
+                          <TableCell><Badge variant="default">Aprovado</Badge></TableCell>
+                          <TableCell>
+                            <Button size="sm" variant="destructive" onClick={() => handleApproval(p.user_id, false)}>
+                              Revogar
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Entries Tab */}
+          <TabsContent value="entries" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-heading">Filtros</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-4">
+                <div className="w-[200px]">
+                  <Select
+                    value={selectedUser || "all"}
+                    onValueChange={(v) => setSelectedUser(v === "all" ? null : v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os usuários" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {approvedProfiles.map((p) => (
+                        <SelectItem key={p.user_id} value={p.user_id}>
+                          {p.full_name || "Sem nome"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="date"
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    className="w-[160px]"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-heading">
+                  Registros — {new Date(dateFilter + "T12:00:00").toLocaleDateString("pt-BR")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {entries.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">
+                    Nenhum registro encontrado para esta data.
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Colaborador</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Horário</TableHead>
+                          <TableHead>Localização</TableHead>
+                          <TableHead>Foto</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {entries.map((entry) => (
+                          <TableRow key={entry.id}>
+                            <TableCell className="font-medium">{getUserName(entry.user_id)}</TableCell>
+                            <TableCell>
+                              <Badge variant={entry.type === "entrada" ? "default" : "destructive"}>
+                                {entry.type}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {new Date(entry.timestamp).toLocaleTimeString("pt-BR", {
+                                hour: "2-digit", minute: "2-digit", second: "2-digit",
+                              })}
+                            </TableCell>
+                            <TableCell>
+                              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <MapPin className="w-3 h-3" />
+                                {entry.latitude.toFixed(4)}, {entry.longitude.toFixed(4)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              {entry.photo_url ? (
+                                <img src={entry.photo_url} alt="Registro" className="w-8 h-8 rounded-full object-cover border border-border" />
+                              ) : (
+                                <span className="text-xs text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

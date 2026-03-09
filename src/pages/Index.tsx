@@ -9,16 +9,49 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 
 type Step = "idle" | "camera" | "processing";
 
 const Index = () => {
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, isApproved, signOut } = useAuth();
   const navigate = useNavigate();
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [step, setStep] = useState<Step>("idle");
   const [pendingType, setPendingType] = useState<"entrada" | "saída">("entrada");
   const geo = useGeolocation();
+
+  // Block unapproved users
+  if (isApproved === false && !isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <header className="glass border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
+              <Fingerprint className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <h1 className="text-lg font-heading font-bold text-foreground">PontoFácil</h1>
+          </div>
+          <Button variant="ghost" size="sm" onClick={signOut}>
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </header>
+        <main className="flex-1 flex items-center justify-center px-4">
+          <Card className="max-w-md w-full">
+            <CardContent className="pt-6 text-center space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center">
+                <Clock className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h2 className="text-xl font-heading font-bold">Aguardando aprovação</h2>
+              <p className="text-muted-foreground text-sm">
+                Seu cadastro está pendente de aprovação pelo administrador. Você será notificado quando for aprovado.
+              </p>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   // Fetch today's entries
   useEffect(() => {
@@ -59,7 +92,6 @@ const Index = () => {
   const handlePhotoCapture = useCallback(
     async (photoUrl: string) => {
       setStep("processing");
-
       await new Promise((r) => setTimeout(r, 1200));
 
       if (!geo.position) {
@@ -110,7 +142,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
       <header className="glass border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
@@ -130,7 +161,6 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Main */}
       <main className="flex-1 flex flex-col items-center px-4 py-8 max-w-lg mx-auto w-full gap-8">
         <LiveClock />
 
