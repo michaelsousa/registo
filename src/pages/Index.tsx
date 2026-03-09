@@ -46,6 +46,9 @@ const Index = () => {
   const [hasPin, setHasPin] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
+  const [hourlyRate, setHourlyRate] = useState(0);
+  const [userName, setUserName] = useState("");
+  const { viewEntry, ReceiptDialog } = useReceiptDialog();
   const geo = useGeolocation();
 
   useEffect(() => {
