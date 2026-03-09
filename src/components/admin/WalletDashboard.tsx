@@ -278,7 +278,7 @@ export function WalletDashboard() {
           {transactions.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">Nenhuma transação registrada.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" id="wallet-tx-export">
               <Table>
                 <TableHeader>
                   <TableRow>
