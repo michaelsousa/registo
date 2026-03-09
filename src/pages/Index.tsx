@@ -41,6 +41,9 @@ const Index = () => {
   const [step, setStep] = useState<Step>("idle");
   const [pendingType, setPendingType] = useState<"entrada" | "saída">("entrada");
   const [storeLocations, setStoreLocations] = useState<StoreLocation[]>([]);
+  const [hasPin, setHasPin] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [pinError, setPinError] = useState(false);
   const geo = useGeolocation();
 
   useEffect(() => {
