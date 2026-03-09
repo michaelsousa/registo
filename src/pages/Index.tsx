@@ -274,6 +274,34 @@ const Index = () => {
               )}
             </>
           )}
+          {step === "pin" && (
+            <div className="flex flex-col items-center gap-4 py-4">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <KeyRound className="w-8 h-8 text-primary" />
+              </div>
+              <p className="text-sm font-semibold">Digite seu PIN de 4 dígitos</p>
+              <Input
+                type="password"
+                maxLength={4}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="••••"
+                value={pinInput}
+                onChange={(e) => {
+                  setPinInput(e.target.value.replace(/\D/g, "").slice(0, 4));
+                  setPinError(false);
+                }}
+                className={`w-32 text-center tracking-widest text-2xl ${pinError ? "border-destructive" : ""}`}
+                autoFocus
+                onKeyDown={(e) => e.key === "Enter" && handlePinSubmit()}
+              />
+              {pinError && <p className="text-xs text-destructive">PIN incorreto</p>}
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={handleCancel}>Cancelar</Button>
+                <Button size="sm" onClick={handlePinSubmit} disabled={pinInput.length !== 4}>Confirmar</Button>
+              </div>
+            </div>
+          )}
           {step === "camera" && <CameraCapture onCapture={handlePhotoCapture} onCancel={handleCancel} />}
           {step === "processing" && (
             <div className="flex flex-col items-center gap-4 py-8">
