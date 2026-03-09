@@ -71,8 +71,20 @@ const Index = () => {
         .select("id")
         .eq("user_id", user.id)
         .maybeSingle(),
-    ]).then(([entriesRes, locsRes, pinRes]) => {
+      supabase
+        .from("user_settings")
+        .select("hourly_rate")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]).then(([entriesRes, locsRes, pinRes, settingsRes, profileRes]) => {
       setHasPin(!!(pinRes.data as any));
+      setHourlyRate(Number(settingsRes.data?.hourly_rate) || 0);
+      setUserName(profileRes.data?.full_name || user.email || "");
       if (entriesRes.data) {
         setEntries(
           entriesRes.data.map((e) => ({
