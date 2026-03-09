@@ -104,14 +104,25 @@ export function UserSettingsManager() {
     setDepartment(profile?.department || "");
     setPosition(profile?.position || "");
     setLunchDuration(settings ? String(settings.lunch_duration_minutes) : "60");
+    setPin("");
 
-    // Load existing schedule
-    const { data: scheduleData } = await supabase
-      .from("user_schedules")
-      .select("day_index, is_workday, start_time, end_time, hourly_rate")
-      .eq("user_id", userId)
-      .order("day_index");
+    // Load existing schedule and PIN in parallel
+    const [scheduleRes, pinRes] = await Promise.all([
+      supabase
+        .from("user_schedules")
+        .select("day_index, is_workday, start_time, end_time, hourly_rate")
+        .eq("user_id", userId)
+        .order("day_index"),
+      supabase
+        .from("user_pins" as any)
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle(),
+    ]);
 
+    setHasPin(!!(pinRes.data as any));
+
+    const scheduleData = scheduleRes.data;
     if (scheduleData && scheduleData.length > 0) {
       setSchedule(scheduleData.map((d) => ({
         day_index: d.day_index,
