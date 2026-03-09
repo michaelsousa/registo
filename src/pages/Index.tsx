@@ -238,6 +238,27 @@ const Index = () => {
       };
 
       setEntries((prev) => [newEntry, ...prev]);
+
+      // Auto-credit wallet on "saída"
+      if (pendingType === "saída" && hourlyRate > 0) {
+        // Find matching entrada (most recent)
+        const lastEntrada = entries.find((e) => e.type === "entrada");
+        if (lastEntrada) {
+          const hoursWorked = (new Date(data.timestamp).getTime() - lastEntrada.timestamp.getTime()) / 3600000;
+          const earned = hoursWorked * hourlyRate;
+          if (earned > 0) {
+            await supabase.from("wallet_transactions").insert({
+              user_id: user!.id,
+              created_by: user!.id,
+              type: "credit",
+              amount: parseFloat(earned.toFixed(2)),
+              description: `Turno ${lastEntrada.timestamp.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} - ${new Date(data.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} (${hoursWorked.toFixed(1)}h)`,
+            });
+            toast.success(`R$ ${earned.toFixed(2)} creditado na carteira!`);
+          }
+        }
+      }
+
       toast.success(
         `${pendingType === "entrada" ? "Entrada" : "Saída"} registrada com sucesso!`
       );
