@@ -181,6 +181,9 @@ export default function AdminPage() {
             <TabsTrigger value="settings">
               <Settings className="w-4 h-4 mr-1" /> Configurações
             </TabsTrigger>
+            <TabsTrigger value="locations">
+              <MapPinned className="w-4 h-4 mr-1" /> Localizações
+            </TabsTrigger>
             <TabsTrigger value="wallet">
               <Wallet className="w-4 h-4 mr-1" /> Carteira
             </TabsTrigger>
