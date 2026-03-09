@@ -396,7 +396,7 @@ export default function AdminPage() {
                         <TableRow>
                           <TableHead>Colaborador</TableHead>
                           <TableHead>Tipo</TableHead>
-                          <TableHead>Horário</TableHead>
+                          <TableHead>Data / Horário</TableHead>
                           <TableHead>Localização</TableHead>
                           <TableHead>Foto</TableHead>
                           <TableHead>Comprovante</TableHead>
