@@ -335,7 +335,8 @@ export function WalletDashboard() {
                       <TableCell>R$ {tx.amount.toFixed(2)}</TableCell>
                       <TableCell className="text-muted-foreground">{tx.description || "—"}</TableCell>
                       <TableCell className="text-muted-foreground">
-                        {new Date(tx.created_at).toLocaleDateString("pt-BR")}
+                        <div>{new Date(tx.created_at).toLocaleDateString("pt-BR")}</div>
+                        <div className="text-xs">{new Date(tx.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</div>
                       </TableCell>
                       <TableCell>
                         <TransactionReceiptActions
