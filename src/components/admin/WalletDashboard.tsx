@@ -319,7 +319,7 @@ export function WalletDashboard() {
                     <TableHead>Tipo</TableHead>
                     <TableHead>Valor</TableHead>
                     <TableHead>Descrição</TableHead>
-                    <TableHead>Data</TableHead>
+                    <TableHead>Data / Hora</TableHead>
                     <TableHead>Comprovante</TableHead>
                   </TableRow>
                 </TableHeader>
