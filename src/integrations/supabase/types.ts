@@ -101,6 +101,72 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          created_at: string
+          hourly_rate: number
+          id: string
+          lunch_duration_minutes: number
+          updated_at: string
+          user_id: string
+          work_end_time: string
+          work_scale: string
+          work_start_time: string
+        }
+        Insert: {
+          created_at?: string
+          hourly_rate?: number
+          id?: string
+          lunch_duration_minutes?: number
+          updated_at?: string
+          user_id: string
+          work_end_time?: string
+          work_scale?: string
+          work_start_time?: string
+        }
+        Update: {
+          created_at?: string
+          hourly_rate?: number
+          id?: string
+          lunch_duration_minutes?: number
+          updated_at?: string
+          user_id?: string
+          work_end_time?: string
+          work_scale?: string
+          work_start_time?: string
+        }
+        Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
