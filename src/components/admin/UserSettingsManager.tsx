@@ -77,6 +77,8 @@ export function UserSettingsManager() {
   const [position, setPosition] = useState("");
   const [lunchDuration, setLunchDuration] = useState("60");
   const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
+  const [pin, setPin] = useState("");
+  const [hasPin, setHasPin] = useState(false);
 
   useEffect(() => { fetchData(); }, []);
 
