@@ -109,10 +109,17 @@ export function WalletDashboard() {
     fetchData();
   };
 
-  const totalCredits = transactions
+  const filteredTransactions = transactions.filter((tx) => {
+    const txDate = tx.created_at.split("T")[0];
+    if (walletDateFrom && txDate < walletDateFrom) return false;
+    if (walletDateTo && txDate > walletDateTo) return false;
+    return true;
+  });
+
+  const totalCredits = filteredTransactions
     .filter((t) => t.type === "credit")
     .reduce((sum, t) => sum + t.amount, 0);
-  const totalDebits = transactions
+  const totalDebits = filteredTransactions
     .filter((t) => t.type === "debit")
     .reduce((sum, t) => sum + t.amount, 0);
 
