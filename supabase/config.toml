@@ -2,3 +2,6 @@ project_id = "oloujbuqphnkroqggzap"
 
 [functions.compare-faces]
 verify_jwt = false
+
+[functions.wallet-transfer]
+verify_jwt = false
