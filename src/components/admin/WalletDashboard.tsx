@@ -352,5 +352,7 @@ export function WalletDashboard() {
         </CardContent>
       </Card>
     </div>
+    <ReceiptDialog />
+    </>
   );
 }
