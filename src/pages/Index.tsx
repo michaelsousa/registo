@@ -129,7 +129,6 @@ const Index = () => {
   const handlePhotoCapture = useCallback(
     async (photoUrl: string) => {
       setStep("processing");
-      await new Promise((r) => setTimeout(r, 1200));
 
       if (!geo.position) {
         toast.error("Localização não disponível. Tente novamente.");
@@ -143,6 +142,56 @@ const Index = () => {
         setStep("idle");
         return;
       }
+
+      // Facial recognition: get user's first ever photo as reference
+      const { data: firstEntry } = await supabase
+        .from("time_entries")
+        .select("photo_url")
+        .eq("user_id", user!.id)
+        .not("photo_url", "is", null)
+        .order("timestamp", { ascending: true })
+        .limit(1)
+        .single();
+
+      if (firstEntry?.photo_url) {
+        // Compare faces
+        try {
+          const compareResp = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/compare-faces`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              },
+              body: JSON.stringify({
+                capturedImage: photoUrl,
+                referenceImage: firstEntry.photo_url,
+              }),
+            }
+          );
+
+          if (compareResp.ok) {
+            const result = await compareResp.json();
+            if (!result.match && !result.skipped) {
+              toast.error(
+                `Reconhecimento facial falhou (confiança: ${Math.round((result.confidence || 0) * 100)}%). A foto não corresponde ao colaborador cadastrado.`
+              );
+              setStep("idle");
+              return;
+            }
+            if (result.match && !result.skipped) {
+              toast.success("Identidade confirmada ✓");
+            }
+          } else {
+            console.error("Face compare failed, allowing punch (fail-open)");
+          }
+        } catch (err) {
+          console.error("Face compare error:", err);
+          // Fail-open: allow punch if AI is unavailable
+        }
+      }
+      // If no reference photo exists, this is the first punch - skip comparison
 
       const { data, error } = await supabase
         .from("time_entries")
