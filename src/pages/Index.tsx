@@ -73,6 +73,15 @@ const Index = () => {
   const nextType: "entrada" | "saída" =
     entries.length === 0 || entries[0].type === "saída" ? "entrada" : "saída";
 
+  const checkProximity = useCallback((lat: number, lng: number): { ok: boolean; nearest?: string } => {
+    if (storeLocations.length === 0) return { ok: true }; // No locations configured = allow anywhere
+    for (const loc of storeLocations) {
+      const dist = haversineDistance(lat, lng, loc.latitude, loc.longitude);
+      if (dist <= loc.radius_meters) return { ok: true };
+    }
+    return { ok: false, nearest: storeLocations[0]?.name };
+  }, [storeLocations]);
+
   const handleStartPunch = useCallback(() => {
     setPendingType(nextType);
     geo.requestPosition();
