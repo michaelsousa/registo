@@ -168,7 +168,7 @@ export function UserSettingsManager() {
         work_end_time: schedule.find((d) => d.is_workday)?.end_time || "17:00",
         lunch_duration_minutes: lunchDuration === "" ? 60 : parseInt(lunchDuration),
         schedule_type: scheduleType,
-        tolerance_minutes: parseInt(toleranceMinutes) || 30,
+        tolerance_minutes: toleranceMinutes === "" ? 30 : parseInt(toleranceMinutes),
         tolerance_mode: toleranceMode,
       }, { onConflict: "user_id" }),
     ]);
