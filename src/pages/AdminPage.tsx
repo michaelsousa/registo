@@ -380,6 +380,9 @@ export default function AdminPage() {
           <TabsContent value="settings">
             <UserSettingsManager />
           </TabsContent>
+          <TabsContent value="locations">
+            <StoreLocationManager />
+          </TabsContent>
           {/* Wallet Tab */}
           <TabsContent value="wallet">
             <WalletDashboard />
