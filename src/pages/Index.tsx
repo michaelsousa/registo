@@ -21,6 +21,93 @@ const Index = () => {
   const [pendingType, setPendingType] = useState<"entrada" | "saída">("entrada");
   const geo = useGeolocation();
 
+  // Fetch today's entries
+  useEffect(() => {
+    if (!user) return;
+    const today = new Date().toISOString().split("T")[0];
+    supabase
+      .from("time_entries")
+      .select("*")
+      .eq("user_id", user.id)
+      .gte("timestamp", `${today}T00:00:00`)
+      .lte("timestamp", `${today}T23:59:59`)
+      .order("timestamp", { ascending: false })
+      .then(({ data }) => {
+        if (data) {
+          setEntries(
+            data.map((e) => ({
+              id: e.id,
+              type: e.type as "entrada" | "saída",
+              timestamp: new Date(e.timestamp),
+              latitude: e.latitude,
+              longitude: e.longitude,
+              photoUrl: e.photo_url || "",
+            }))
+          );
+        }
+      });
+  }, [user]);
+
+  const nextType: "entrada" | "saída" =
+    entries.length === 0 || entries[0].type === "saída" ? "entrada" : "saída";
+
+  const handleStartPunch = useCallback(() => {
+    setPendingType(nextType);
+    geo.requestPosition();
+    setStep("camera");
+  }, [nextType, geo]);
+
+  const handlePhotoCapture = useCallback(
+    async (photoUrl: string) => {
+      setStep("processing");
+      await new Promise((r) => setTimeout(r, 1200));
+
+      if (!geo.position) {
+        toast.error("Localização não disponível. Tente novamente.");
+        setStep("idle");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("time_entries")
+        .insert({
+          user_id: user!.id,
+          type: pendingType,
+          latitude: geo.position.latitude,
+          longitude: geo.position.longitude,
+          photo_url: photoUrl,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        toast.error("Erro ao registrar ponto.");
+        setStep("idle");
+        return;
+      }
+
+      const newEntry: TimeEntry = {
+        id: data.id,
+        type: data.type as "entrada" | "saída",
+        timestamp: new Date(data.timestamp),
+        latitude: data.latitude,
+        longitude: data.longitude,
+        photoUrl: data.photo_url || "",
+      };
+
+      setEntries((prev) => [newEntry, ...prev]);
+      toast.success(
+        `${pendingType === "entrada" ? "Entrada" : "Saída"} registrada com sucesso!`
+      );
+      setStep("idle");
+    },
+    [geo.position, pendingType, user]
+  );
+
+  const handleCancel = useCallback(() => {
+    setStep("idle");
+  }, []);
+
   // Block unapproved users
   if (isApproved === false && !isAdmin) {
     return (
