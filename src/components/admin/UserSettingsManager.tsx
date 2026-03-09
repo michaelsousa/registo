@@ -15,7 +15,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Settings, Save, DollarSign, Clock, Edit, AlertTriangle } from "lucide-react";
+import { Settings, Save, DollarSign, Clock, Edit, AlertTriangle, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 
 interface ProfileRow {
