@@ -293,6 +293,42 @@ export function UserSettingsManager() {
               </div>
             </div>
 
+            {/* PIN */}
+            <Card className="border-primary/30 bg-primary/5">
+              <CardContent className="pt-4 space-y-3">
+                <h4 className="text-sm font-semibold flex items-center gap-2">
+                  <KeyRound className="w-4 h-4 text-primary" /> PIN de Segurança
+                </h4>
+                <div className="flex items-center gap-4">
+                  <div className="space-y-2 flex-1">
+                    <Label>PIN (4 dígitos)</Label>
+                    <Input
+                      type="text"
+                      maxLength={4}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder={hasPin ? "••••  (já definido, digite para alterar)" : "Definir PIN"}
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                      className="w-48 text-center tracking-widest text-lg"
+                    />
+                  </div>
+                  {hasPin && (
+                    <Badge variant="outline" className="text-success border-success">
+                      PIN ativo
+                    </Badge>
+                  )}
+                  {!hasPin && (
+                    <Badge variant="outline" className="text-destructive border-destructive">
+                      Sem PIN
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  O colaborador precisará digitar este PIN antes de bater o ponto para confirmar sua identidade.
+                </p>
+              </CardContent>
+            </Card>
             {/* Tolerance */}
             <Card className="border-warning/30 bg-warning/5">
               <CardContent className="pt-4 space-y-3">
