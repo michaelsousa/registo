@@ -13,8 +13,9 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Users, Clock, MapPin, Search, LogOut, ArrowLeft, Calendar, Shield, UserCheck, UserX,
+  Users, Clock, MapPin, Search, LogOut, ArrowLeft, Calendar, Shield, UserCheck, UserX, Wallet,
 } from "lucide-react";
+import { WalletDashboard } from "@/components/admin/WalletDashboard";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
