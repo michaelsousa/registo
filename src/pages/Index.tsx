@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { MapPin, Fingerprint, Clock, History, LogOut, Shield, Settings, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { LiveClock } from "@/components/LiveClock";
 import { CameraCapture } from "@/components/CameraCapture";
 import { TimeEntryCard, TimeEntry } from "@/components/TimeEntryCard";
+import { WorkTimer } from "@/components/WorkTimer";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { useReceiptDialog } from "@/components/ReceiptDialog";
 
 type Step = "idle" | "pin" | "camera" | "processing";
 
@@ -44,6 +46,9 @@ const Index = () => {
   const [hasPin, setHasPin] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
+  const [hourlyRate, setHourlyRate] = useState(0);
+  const [userName, setUserName] = useState("");
+  const { viewEntry, ReceiptDialog } = useReceiptDialog();
   const geo = useGeolocation();
 
   useEffect(() => {
@@ -66,8 +71,20 @@ const Index = () => {
         .select("id")
         .eq("user_id", user.id)
         .maybeSingle(),
-    ]).then(([entriesRes, locsRes, pinRes]) => {
+      supabase
+        .from("user_settings")
+        .select("hourly_rate")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]).then(([entriesRes, locsRes, pinRes, settingsRes, profileRes]) => {
       setHasPin(!!(pinRes.data as any));
+      setHourlyRate(Number(settingsRes.data?.hourly_rate) || 0);
+      setUserName(profileRes.data?.full_name || user.email || "");
       if (entriesRes.data) {
         setEntries(
           entriesRes.data.map((e) => ({
@@ -224,9 +241,21 @@ const Index = () => {
       toast.success(
         `${pendingType === "entrada" ? "Entrada" : "Saída"} registrada com sucesso!`
       );
+
+      // Auto-show receipt
+      viewEntry({
+        id: data.id,
+        userName,
+        type: data.type,
+        timestamp: data.timestamp,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        photoUrl: data.photo_url,
+      });
+
       setStep("idle");
     },
-    [geo.position, pendingType, user]
+    [geo.position, pendingType, user, userName, viewEntry]
   );
 
   const handleCancel = useCallback(() => {
@@ -292,6 +321,14 @@ const Index = () => {
       <main className="flex-1 flex flex-col items-center px-4 py-8 max-w-lg mx-auto w-full gap-8">
         <LiveClock />
 
+        {/* Work timer - shows when clocked in */}
+        {nextType === "saída" && entries.length > 0 && entries[0].type === "entrada" && (
+          <WorkTimer
+            startTime={entries[0].timestamp}
+            hourlyRate={hourlyRate}
+            isRunning={true}
+          />
+        )}
         <div className="w-full glass rounded-2xl p-8 flex flex-col items-center gap-6">
           {step === "idle" && (
             <>
@@ -376,6 +413,7 @@ const Index = () => {
           </div>
         )}
       </main>
+      <ReceiptDialog />
     </div>
   );
 };
