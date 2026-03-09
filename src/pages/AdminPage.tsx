@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Users, Clock, MapPin, Search, LogOut, ArrowLeft, Calendar, Shield, UserCheck, UserX, Wallet, Settings, MapPinned, Download, FileImage,
+  Users, Clock, MapPin, Search, LogOut, ArrowLeft, Calendar, Shield, UserCheck, UserX, Wallet, Settings, MapPinned, Download, FileImage, Eye,
 } from "lucide-react";
 import { exportElementAsPNG, exportElementAsPDF } from "@/lib/exportUtils";
+import { useReceiptDialog, EntryReceiptActions } from "@/components/ReceiptDialog";
 import { WalletDashboard } from "@/components/admin/WalletDashboard";
 import { UserSettingsManager } from "@/components/admin/UserSettingsManager";
 import { StoreLocationManager } from "@/components/admin/StoreLocationManager";
@@ -52,6 +53,7 @@ export default function AdminPage() {
   const [dateTo, setDateTo] = useState(new Date().toISOString().split("T")[0]);
   const [useDateRange, setUseDateRange] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { viewEntry, ReceiptDialog } = useReceiptDialog();
 
   useEffect(() => { fetchProfiles(); }, []);
   useEffect(() => { fetchEntries(); }, [selectedUser, dateFilter, dateFrom, dateTo, useDateRange]);
@@ -397,7 +399,7 @@ export default function AdminPage() {
                           <TableHead>Horário</TableHead>
                           <TableHead>Localização</TableHead>
                           <TableHead>Foto</TableHead>
-                          <TableHead>Exportar</TableHead>
+                          <TableHead>Comprovante</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -428,20 +430,11 @@ export default function AdminPage() {
                               )}
                             </TableCell>
                             <TableCell>
-                              <div className="flex gap-1">
-                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
-                                  const el = document.getElementById(`entry-${entry.id}`);
-                                  if (el) exportElementAsPNG(el, `ponto-${entry.id}`);
-                                }}>
-                                  <FileImage className="w-3 h-3" />
-                                </Button>
-                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
-                                  const el = document.getElementById(`entry-${entry.id}`);
-                                  if (el) exportElementAsPDF(el, `ponto-${entry.id}`);
-                                }}>
-                                  <Download className="w-3 h-3" />
-                                </Button>
-                              </div>
+                              <EntryReceiptActions
+                                entry={entry}
+                                userName={getUserName(entry.user_id)}
+                                onView={viewEntry}
+                              />
                             </TableCell>
                           </TableRow>
                         ))}
@@ -465,6 +458,7 @@ export default function AdminPage() {
           </TabsContent>
         </Tabs>
       </main>
+      <ReceiptDialog />
     </div>
   );
 }

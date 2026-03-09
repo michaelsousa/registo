@@ -14,9 +14,10 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import { Wallet, Plus, Minus, DollarSign, TrendingUp, TrendingDown, Download, FileImage, Calendar } from "lucide-react";
+import { Wallet, Plus, Minus, DollarSign, TrendingUp, TrendingDown, Download, FileImage, Calendar, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { exportElementAsPNG, exportElementAsPDF } from "@/lib/exportUtils";
+import { useReceiptDialog, TransactionReceiptActions } from "@/components/ReceiptDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ProfileRow {
@@ -52,6 +53,7 @@ export function WalletDashboard() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [walletDateFrom, setWalletDateFrom] = useState("");
   const [walletDateTo, setWalletDateTo] = useState("");
+  const { viewTransaction, ReceiptDialog } = useReceiptDialog();
 
   useEffect(() => {
     fetchData();
@@ -128,6 +130,7 @@ export function WalletDashboard() {
     profiles.find((p) => p.user_id === userId)?.full_name || "Sem nome";
 
   return (
+    <>
     <div className="space-y-4">
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -317,7 +320,7 @@ export function WalletDashboard() {
                     <TableHead>Valor</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Data</TableHead>
-                    <TableHead>Exportar</TableHead>
+                    <TableHead>Comprovante</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -335,20 +338,11 @@ export function WalletDashboard() {
                         {new Date(tx.created_at).toLocaleDateString("pt-BR")}
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
-                            const el = document.getElementById(`tx-${tx.id}`);
-                            if (el) exportElementAsPNG(el, `transacao-${tx.id}`);
-                          }}>
-                            <FileImage className="w-3 h-3" />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
-                            const el = document.getElementById(`tx-${tx.id}`);
-                            if (el) exportElementAsPDF(el, `transacao-${tx.id}`);
-                          }}>
-                            <Download className="w-3 h-3" />
-                          </Button>
-                        </div>
+                        <TransactionReceiptActions
+                          tx={tx}
+                          userName={getUserName(tx.user_id)}
+                          onView={viewTransaction}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -359,5 +353,7 @@ export function WalletDashboard() {
         </CardContent>
       </Card>
     </div>
+    <ReceiptDialog />
+    </>
   );
 }
