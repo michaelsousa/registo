@@ -15,7 +15,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Settings, Save, DollarSign, Clock, Edit, AlertTriangle } from "lucide-react";
+import { Settings, Save, DollarSign, Clock, Edit, AlertTriangle, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 
 interface ProfileRow {
@@ -77,6 +77,8 @@ export function UserSettingsManager() {
   const [position, setPosition] = useState("");
   const [lunchDuration, setLunchDuration] = useState("60");
   const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
+  const [pin, setPin] = useState("");
+  const [hasPin, setHasPin] = useState(false);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -102,14 +104,25 @@ export function UserSettingsManager() {
     setDepartment(profile?.department || "");
     setPosition(profile?.position || "");
     setLunchDuration(settings ? String(settings.lunch_duration_minutes) : "60");
+    setPin("");
 
-    // Load existing schedule
-    const { data: scheduleData } = await supabase
-      .from("user_schedules")
-      .select("day_index, is_workday, start_time, end_time, hourly_rate")
-      .eq("user_id", userId)
-      .order("day_index");
+    // Load existing schedule and PIN in parallel
+    const [scheduleRes, pinRes] = await Promise.all([
+      supabase
+        .from("user_schedules")
+        .select("day_index, is_workday, start_time, end_time, hourly_rate")
+        .eq("user_id", userId)
+        .order("day_index"),
+      supabase
+        .from("user_pins" as any)
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle(),
+    ]);
 
+    setHasPin(!!(pinRes.data as any));
+
+    const scheduleData = scheduleRes.data;
     if (scheduleData && scheduleData.length > 0) {
       setSchedule(scheduleData.map((d) => ({
         day_index: d.day_index,
@@ -194,6 +207,12 @@ export function UserSettingsManager() {
       }))
     );
 
+    // Save PIN if provided
+    if (pin.length === 4) {
+      await supabase.from("user_pins" as any).delete().eq("user_id", editingUser);
+      await supabase.from("user_pins" as any).insert({ user_id: editingUser, pin_hash: pin } as any);
+    }
+
     if (schedError) {
       console.error("Schedule save error:", schedError);
       toast.error(`Erro ao salvar escala: ${schedError.message}`);
@@ -274,6 +293,42 @@ export function UserSettingsManager() {
               </div>
             </div>
 
+            {/* PIN */}
+            <Card className="border-primary/30 bg-primary/5">
+              <CardContent className="pt-4 space-y-3">
+                <h4 className="text-sm font-semibold flex items-center gap-2">
+                  <KeyRound className="w-4 h-4 text-primary" /> PIN de Segurança
+                </h4>
+                <div className="flex items-center gap-4">
+                  <div className="space-y-2 flex-1">
+                    <Label>PIN (4 dígitos)</Label>
+                    <Input
+                      type="text"
+                      maxLength={4}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder={hasPin ? "••••  (já definido, digite para alterar)" : "Definir PIN"}
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                      className="w-48 text-center tracking-widest text-lg"
+                    />
+                  </div>
+                  {hasPin && (
+                    <Badge variant="outline" className="text-success border-success">
+                      PIN ativo
+                    </Badge>
+                  )}
+                  {!hasPin && (
+                    <Badge variant="outline" className="text-destructive border-destructive">
+                      Sem PIN
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  O colaborador precisará digitar este PIN antes de bater o ponto para confirmar sua identidade.
+                </p>
+              </CardContent>
+            </Card>
             {/* Tolerance */}
             <Card className="border-warning/30 bg-warning/5">
               <CardContent className="pt-4 space-y-3">

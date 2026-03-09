@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
-import { MapPin, Fingerprint, Clock, History, LogOut, Shield, Settings } from "lucide-react";
+import { MapPin, Fingerprint, Clock, History, LogOut, Shield, Settings, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { LiveClock } from "@/components/LiveClock";
 import { CameraCapture } from "@/components/CameraCapture";
 import { TimeEntryCard, TimeEntry } from "@/components/TimeEntryCard";
@@ -10,8 +12,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 
-type Step = "idle" | "camera" | "processing";
+type Step = "idle" | "pin" | "camera" | "processing";
 
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371000;
@@ -36,6 +41,9 @@ const Index = () => {
   const [step, setStep] = useState<Step>("idle");
   const [pendingType, setPendingType] = useState<"entrada" | "saída">("entrada");
   const [storeLocations, setStoreLocations] = useState<StoreLocation[]>([]);
+  const [hasPin, setHasPin] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [pinError, setPinError] = useState(false);
   const geo = useGeolocation();
 
   useEffect(() => {
@@ -53,7 +61,13 @@ const Index = () => {
         .from("store_locations")
         .select("latitude, longitude, radius_meters, name")
         .eq("is_active", true),
-    ]).then(([entriesRes, locsRes]) => {
+      supabase
+        .from("user_pins" as any)
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]).then(([entriesRes, locsRes, pinRes]) => {
+      setHasPin(!!(pinRes.data as any));
       if (entriesRes.data) {
         setEntries(
           entriesRes.data.map((e) => ({
@@ -84,9 +98,33 @@ const Index = () => {
 
   const handleStartPunch = useCallback(() => {
     setPendingType(nextType);
+    setPinInput("");
+    setPinError(false);
     geo.requestPosition();
-    setStep("camera");
-  }, [nextType, geo]);
+    if (hasPin) {
+      setStep("pin");
+    } else {
+      setStep("camera");
+    }
+  }, [nextType, geo, hasPin]);
+
+  const handlePinSubmit = useCallback(async () => {
+    if (pinInput.length !== 4) {
+      setPinError(true);
+      return;
+    }
+    const { data } = await supabase.rpc("verify_user_pin", {
+      _user_id: user!.id,
+      _pin: pinInput,
+    });
+    if (data) {
+      setPinError(false);
+      setStep("camera");
+    } else {
+      setPinError(true);
+      toast.error("PIN incorreto. Tente novamente.");
+    }
+  }, [pinInput, user]);
 
   const handlePhotoCapture = useCallback(
     async (photoUrl: string) => {
@@ -235,6 +273,34 @@ const Index = () => {
                 </div>
               )}
             </>
+          )}
+          {step === "pin" && (
+            <div className="flex flex-col items-center gap-4 py-4">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <KeyRound className="w-8 h-8 text-primary" />
+              </div>
+              <p className="text-sm font-semibold">Digite seu PIN de 4 dígitos</p>
+              <Input
+                type="password"
+                maxLength={4}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="••••"
+                value={pinInput}
+                onChange={(e) => {
+                  setPinInput(e.target.value.replace(/\D/g, "").slice(0, 4));
+                  setPinError(false);
+                }}
+                className={`w-32 text-center tracking-widest text-2xl ${pinError ? "border-destructive" : ""}`}
+                autoFocus
+                onKeyDown={(e) => e.key === "Enter" && handlePinSubmit()}
+              />
+              {pinError && <p className="text-xs text-destructive">PIN incorreto</p>}
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={handleCancel}>Cancelar</Button>
+                <Button size="sm" onClick={handlePinSubmit} disabled={pinInput.length !== 4}>Confirmar</Button>
+              </div>
+            </div>
           )}
           {step === "camera" && <CameraCapture onCapture={handlePhotoCapture} onCancel={handleCancel} />}
           {step === "processing" && (
