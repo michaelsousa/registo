@@ -337,20 +337,11 @@ export function WalletDashboard() {
                         {new Date(tx.created_at).toLocaleDateString("pt-BR")}
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
-                            const el = document.getElementById(`tx-${tx.id}`);
-                            if (el) exportElementAsPNG(el, `transacao-${tx.id}`);
-                          }}>
-                            <FileImage className="w-3 h-3" />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
-                            const el = document.getElementById(`tx-${tx.id}`);
-                            if (el) exportElementAsPDF(el, `transacao-${tx.id}`);
-                          }}>
-                            <Download className="w-3 h-3" />
-                          </Button>
-                        </div>
+                        <TransactionReceiptActions
+                          tx={tx}
+                          userName={getUserName(tx.user_id)}
+                          onView={viewTransaction}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
