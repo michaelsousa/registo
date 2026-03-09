@@ -396,7 +396,7 @@ export default function AdminPage() {
                         <TableRow>
                           <TableHead>Colaborador</TableHead>
                           <TableHead>Tipo</TableHead>
-                          <TableHead>Horário</TableHead>
+                          <TableHead>Data / Horário</TableHead>
                           <TableHead>Localização</TableHead>
                           <TableHead>Foto</TableHead>
                           <TableHead>Comprovante</TableHead>
@@ -412,9 +412,14 @@ export default function AdminPage() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              {new Date(entry.timestamp).toLocaleTimeString("pt-BR", {
-                                hour: "2-digit", minute: "2-digit", second: "2-digit",
-                              })}
+                              <div className="text-sm">
+                                {new Date(entry.timestamp).toLocaleDateString("pt-BR")}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {new Date(entry.timestamp).toLocaleTimeString("pt-BR", {
+                                  hour: "2-digit", minute: "2-digit", second: "2-digit",
+                                })}
+                              </div>
                             </TableCell>
                             <TableCell>
                               <span className="flex items-center gap-1 text-xs text-muted-foreground">

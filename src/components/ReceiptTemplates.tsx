@@ -86,6 +86,9 @@ export const TransactionReceipt = forwardRef<HTMLDivElement, TransactionReceiptP
     const formattedDate = new Date(date).toLocaleDateString("pt-BR", {
       day: "2-digit", month: "long", year: "numeric",
     });
+    const formattedTime = new Date(date).toLocaleTimeString("pt-BR", {
+      hour: "2-digit", minute: "2-digit",
+    });
 
     return (
       <div ref={ref} className="bg-white text-black p-6 w-[360px] border border-gray-200 rounded-lg" style={{ fontFamily: "system-ui, sans-serif" }}>
@@ -117,6 +120,10 @@ export const TransactionReceipt = forwardRef<HTMLDivElement, TransactionReceiptP
           <div className="flex justify-between">
             <span className="text-gray-500">Data</span>
             <span className="font-medium">{formattedDate}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">Horário</span>
+            <span className="font-medium">{formattedTime}</span>
           </div>
           {description && (
             <div className="flex justify-between">
