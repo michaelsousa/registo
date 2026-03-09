@@ -101,12 +101,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_schedules: {
+        Row: {
+          created_at: string
+          day_index: number
+          end_time: string
+          hourly_rate: number
+          id: string
+          is_workday: boolean
+          start_time: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_index: number
+          end_time?: string
+          hourly_rate?: number
+          id?: string
+          is_workday?: boolean
+          start_time?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day_index?: number
+          end_time?: string
+          hourly_rate?: number
+          id?: string
+          is_workday?: boolean
+          start_time?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           created_at: string
           hourly_rate: number
           id: string
           lunch_duration_minutes: number
+          schedule_type: string
+          tolerance_minutes: number
+          tolerance_mode: string
           updated_at: string
           user_id: string
           work_end_time: string
@@ -118,6 +154,9 @@ export type Database = {
           hourly_rate?: number
           id?: string
           lunch_duration_minutes?: number
+          schedule_type?: string
+          tolerance_minutes?: number
+          tolerance_mode?: string
           updated_at?: string
           user_id: string
           work_end_time?: string
@@ -129,6 +168,9 @@ export type Database = {
           hourly_rate?: number
           id?: string
           lunch_duration_minutes?: number
+          schedule_type?: string
+          tolerance_minutes?: number
+          tolerance_mode?: string
           updated_at?: string
           user_id?: string
           work_end_time?: string
