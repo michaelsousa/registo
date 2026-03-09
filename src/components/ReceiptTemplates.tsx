@@ -121,6 +121,10 @@ export const TransactionReceipt = forwardRef<HTMLDivElement, TransactionReceiptP
             <span className="text-gray-500">Data</span>
             <span className="font-medium">{formattedDate}</span>
           </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">Horário</span>
+            <span className="font-medium">{formattedTime}</span>
+          </div>
           {description && (
             <div className="flex justify-between">
               <span className="text-gray-500">Descrição</span>
