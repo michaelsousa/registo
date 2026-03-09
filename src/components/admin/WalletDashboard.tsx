@@ -49,6 +49,8 @@ export function WalletDashboard() {
   const [description, setDescription] = useState("");
   const [txType, setTxType] = useState<"credit" | "debit">("credit");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [walletDateFrom, setWalletDateFrom] = useState("");
+  const [walletDateTo, setWalletDateTo] = useState("");
 
   useEffect(() => {
     fetchData();
