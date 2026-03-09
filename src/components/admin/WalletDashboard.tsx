@@ -53,6 +53,7 @@ export function WalletDashboard() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [walletDateFrom, setWalletDateFrom] = useState("");
   const [walletDateTo, setWalletDateTo] = useState("");
+  const { viewTransaction, ReceiptDialog } = useReceiptDialog();
 
   useEffect(() => {
     fetchData();
