@@ -13,8 +13,9 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import { Wallet, Plus, Minus, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
+import { Wallet, Plus, Minus, DollarSign, TrendingUp, TrendingDown, Download, FileImage } from "lucide-react";
 import { toast } from "sonner";
+import { exportElementAsPNG, exportElementAsPDF } from "@/lib/exportUtils";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ProfileRow {
@@ -254,14 +255,30 @@ export function WalletDashboard() {
 
       {/* Recent transactions */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base font-heading">Últimas Transações</CardTitle>
+          {transactions.length > 0 && (
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => {
+                const el = document.getElementById("wallet-tx-export");
+                if (el) exportElementAsPNG(el, "transacoes-carteira");
+              }}>
+                <FileImage className="w-4 h-4 mr-1" /> PNG
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => {
+                const el = document.getElementById("wallet-tx-export");
+                if (el) exportElementAsPDF(el, "transacoes-carteira");
+              }}>
+                <Download className="w-4 h-4 mr-1" /> PDF
+              </Button>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           {transactions.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">Nenhuma transação registrada.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" id="wallet-tx-export">
               <Table>
                 <TableHeader>
                   <TableRow>

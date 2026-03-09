@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,8 +13,9 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Users, Clock, MapPin, Search, LogOut, ArrowLeft, Calendar, Shield, UserCheck, UserX, Wallet, Settings, MapPinned,
+  Users, Clock, MapPin, Search, LogOut, ArrowLeft, Calendar, Shield, UserCheck, UserX, Wallet, Settings, MapPinned, Download, FileImage,
 } from "lucide-react";
+import { exportElementAsPNG, exportElementAsPDF } from "@/lib/exportUtils";
 import { WalletDashboard } from "@/components/admin/WalletDashboard";
 import { UserSettingsManager } from "@/components/admin/UserSettingsManager";
 import { StoreLocationManager } from "@/components/admin/StoreLocationManager";
@@ -318,10 +319,26 @@ export default function AdminPage() {
             </Card>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base font-heading">
                   Registros — {new Date(dateFilter + "T12:00:00").toLocaleDateString("pt-BR")}
                 </CardTitle>
+                {entries.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => {
+                      const el = document.getElementById("entries-export");
+                      if (el) exportElementAsPNG(el, `ponto-${dateFilter}`);
+                    }}>
+                      <FileImage className="w-4 h-4 mr-1" /> PNG
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => {
+                      const el = document.getElementById("entries-export");
+                      if (el) exportElementAsPDF(el, `ponto-${dateFilter}`);
+                    }}>
+                      <Download className="w-4 h-4 mr-1" /> PDF
+                    </Button>
+                  </div>
+                )}
               </CardHeader>
               <CardContent>
                 {entries.length === 0 ? (
@@ -329,7 +346,7 @@ export default function AdminPage() {
                     Nenhum registro encontrado para esta data.
                   </p>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto" id="entries-export">
                     <Table>
                       <TableHeader>
                         <TableRow>
