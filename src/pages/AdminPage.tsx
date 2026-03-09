@@ -48,6 +48,9 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState(new Date().toISOString().split("T")[0]);
+  const [dateFrom, setDateFrom] = useState(new Date().toISOString().split("T")[0]);
+  const [dateTo, setDateTo] = useState(new Date().toISOString().split("T")[0]);
+  const [useDateRange, setUseDateRange] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { fetchProfiles(); }, []);
