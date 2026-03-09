@@ -372,6 +372,10 @@ export default function AdminPage() {
               </CardContent>
             </Card>
           </TabsContent>
+          {/* Settings Tab */}
+          <TabsContent value="settings">
+            <UserSettingsManager />
+          </TabsContent>
           {/* Wallet Tab */}
           <TabsContent value="wallet">
             <WalletDashboard />
