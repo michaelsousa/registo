@@ -66,11 +66,13 @@ export default function AdminPage() {
   };
 
   const fetchEntries = async () => {
+    const fromDate = useDateRange ? dateFrom : dateFilter;
+    const toDate = useDateRange ? dateTo : dateFilter;
     let query = supabase
       .from("time_entries")
       .select("*")
-      .gte("timestamp", `${dateFilter}T00:00:00`)
-      .lte("timestamp", `${dateFilter}T23:59:59`)
+      .gte("timestamp", `${fromDate}T00:00:00`)
+      .lte("timestamp", `${toDate}T23:59:59`)
       .order("timestamp", { ascending: false });
     if (selectedUser) query = query.eq("user_id", selectedUser);
     const { data, error } = await query;
