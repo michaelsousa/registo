@@ -14,9 +14,10 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import { Wallet, Plus, Minus, DollarSign, TrendingUp, TrendingDown, Download, FileImage, Calendar } from "lucide-react";
+import { Wallet, Plus, Minus, DollarSign, TrendingUp, TrendingDown, Download, FileImage, Calendar, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { exportElementAsPNG, exportElementAsPDF } from "@/lib/exportUtils";
+import { useReceiptDialog, TransactionReceiptActions } from "@/components/ReceiptDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ProfileRow {
