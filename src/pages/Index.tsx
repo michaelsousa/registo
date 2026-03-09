@@ -324,7 +324,7 @@ const Index = () => {
         {/* Work timer - shows when clocked in */}
         {nextType === "saída" && entries.length > 0 && entries[0].type === "entrada" && (
           <WorkTimer
-            startTime={entries[entries.length > 0 ? entries.findIndex(e => e.type === "entrada") : 0]?.timestamp || new Date()}
+            startTime={entries[0].timestamp}
             hourlyRate={hourlyRate}
             isRunning={true}
           />
