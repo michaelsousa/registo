@@ -130,6 +130,7 @@ export function WalletDashboard() {
     profiles.find((p) => p.user_id === userId)?.full_name || "Sem nome";
 
   return (
+    <>
     <div className="space-y-4">
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
