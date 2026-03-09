@@ -263,11 +263,31 @@ export function WalletDashboard() {
         </CardContent>
       </Card>
 
-      {/* Recent transactions */}
+      {/* Date filter for transactions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-heading">Filtro por Período</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-4 items-center">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-muted-foreground" />
+            <Input type="date" value={walletDateFrom} onChange={(e) => setWalletDateFrom(e.target.value)} className="w-[145px]" placeholder="De" />
+            <span className="text-xs text-muted-foreground">até</span>
+            <Input type="date" value={walletDateTo} onChange={(e) => setWalletDateTo(e.target.value)} className="w-[145px]" placeholder="Até" />
+          </div>
+          {(walletDateFrom || walletDateTo) && (
+            <Button size="sm" variant="ghost" onClick={() => { setWalletDateFrom(""); setWalletDateTo(""); }}>
+              Limpar
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Transactions */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-heading">Últimas Transações</CardTitle>
-          {transactions.length > 0 && (
+          <CardTitle className="text-base font-heading">Transações ({filteredTransactions.length})</CardTitle>
+          {filteredTransactions.length > 0 && (
             <div className="flex gap-2">
               <Button size="sm" variant="outline" onClick={() => {
                 const el = document.getElementById("wallet-tx-export");
@@ -285,8 +305,8 @@ export function WalletDashboard() {
           )}
         </CardHeader>
         <CardContent>
-          {transactions.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Nenhuma transação registrada.</p>
+          {filteredTransactions.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">Nenhuma transação encontrada.</p>
           ) : (
             <div className="overflow-x-auto" id="wallet-tx-export">
               <Table>
@@ -297,11 +317,12 @@ export function WalletDashboard() {
                     <TableHead>Valor</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Data</TableHead>
+                    <TableHead>Exportar</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.slice(0, 20).map((tx) => (
-                    <TableRow key={tx.id}>
+                  {filteredTransactions.map((tx) => (
+                    <TableRow key={tx.id} id={`tx-${tx.id}`}>
                       <TableCell className="font-medium">{getUserName(tx.user_id)}</TableCell>
                       <TableCell>
                         <Badge variant={tx.type === "credit" ? "default" : "destructive"}>
@@ -312,6 +333,22 @@ export function WalletDashboard() {
                       <TableCell className="text-muted-foreground">{tx.description || "—"}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {new Date(tx.created_at).toLocaleDateString("pt-BR")}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
+                            const el = document.getElementById(`tx-${tx.id}`);
+                            if (el) exportElementAsPNG(el, `transacao-${tx.id}`);
+                          }}>
+                            <FileImage className="w-3 h-3" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
+                            const el = document.getElementById(`tx-${tx.id}`);
+                            if (el) exportElementAsPDF(el, `transacao-${tx.id}`);
+                          }}>
+                            <Download className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
