@@ -399,7 +399,7 @@ export default function AdminPage() {
                           <TableHead>Horário</TableHead>
                           <TableHead>Localização</TableHead>
                           <TableHead>Foto</TableHead>
-                          <TableHead>Exportar</TableHead>
+                          <TableHead>Comprovante</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
