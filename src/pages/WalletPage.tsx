@@ -119,35 +119,37 @@ const WalletPage = () => {
     setLoading(true);
 
     const targetName = profiles.find((p) => p.user_id === transferTo)?.full_name || "Colaborador";
-    const myName = (await supabase.from("profiles").select("full_name").eq("user_id", user!.id).single()).data?.full_name || "Colaborador";
 
-    // Debit from sender + credit to receiver
-    const [debitRes, creditRes] = await Promise.all([
-      supabase.from("wallet_transactions").insert({
-        user_id: user!.id,
-        created_by: user!.id,
-        type: "debit",
-        amount: val,
-        description: `Transferência para ${targetName}${description ? ` - ${description}` : ""}`,
-      }),
-      supabase.from("wallet_transactions").insert({
-        user_id: transferTo,
-        created_by: user!.id,
-        type: "credit",
-        amount: val,
-        description: `Transferência de ${myName}${description ? ` - ${description}` : ""}`,
-      }),
-    ]);
+    try {
+      const resp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/wallet-transfer`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({
+            targetUserId: transferTo,
+            amount: val,
+            description: description || undefined,
+          }),
+        }
+      );
 
-    if (debitRes.error || creditRes.error) {
+      const result = await resp.json();
+      if (!resp.ok || result.error) {
+        toast.error(result.error === "Insufficient balance" ? "Saldo insuficiente" : "Erro na transferência");
+      } else {
+        toast.success(`R$ ${val.toFixed(2)} transferido para ${targetName}!`);
+        setShowTransfer(false);
+        setAmount("");
+        setDescription("");
+        setTransferTo("");
+        fetchData();
+      }
+    } catch (err) {
       toast.error("Erro na transferência");
-    } else {
-      toast.success(`R$ ${val.toFixed(2)} transferido para ${targetName}!`);
-      setShowTransfer(false);
-      setAmount("");
-      setDescription("");
-      setTransferTo("");
-      fetchData();
     }
     setLoading(false);
   };
