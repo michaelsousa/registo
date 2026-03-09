@@ -98,9 +98,33 @@ const Index = () => {
 
   const handleStartPunch = useCallback(() => {
     setPendingType(nextType);
+    setPinInput("");
+    setPinError(false);
     geo.requestPosition();
-    setStep("camera");
-  }, [nextType, geo]);
+    if (hasPin) {
+      setStep("pin");
+    } else {
+      setStep("camera");
+    }
+  }, [nextType, geo, hasPin]);
+
+  const handlePinSubmit = useCallback(async () => {
+    if (pinInput.length !== 4) {
+      setPinError(true);
+      return;
+    }
+    const { data } = await supabase.rpc("verify_user_pin", {
+      _user_id: user!.id,
+      _pin: pinInput,
+    });
+    if (data) {
+      setPinError(false);
+      setStep("camera");
+    } else {
+      setPinError(true);
+      toast.error("PIN incorreto. Tente novamente.");
+    }
+  }, [pinInput, user]);
 
   const handlePhotoCapture = useCallback(
     async (photoUrl: string) => {
