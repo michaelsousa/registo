@@ -166,7 +166,7 @@ export function UserSettingsManager() {
         work_scale: scheduleType === "weekly" ? "custom" : "monthly",
         work_start_time: schedule.find((d) => d.is_workday)?.start_time || "08:00",
         work_end_time: schedule.find((d) => d.is_workday)?.end_time || "17:00",
-        lunch_duration_minutes: parseInt(lunchDuration) || 60,
+        lunch_duration_minutes: lunchDuration === "" ? 60 : parseInt(lunchDuration),
         schedule_type: scheduleType,
         tolerance_minutes: parseInt(toleranceMinutes) || 30,
         tolerance_mode: toleranceMode,
