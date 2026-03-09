@@ -54,7 +54,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { fetchProfiles(); }, []);
-  useEffect(() => { fetchEntries(); }, [selectedUser, dateFilter]);
+  useEffect(() => { fetchEntries(); }, [selectedUser, dateFilter, dateFrom, dateTo, useDateRange]);
 
   const fetchProfiles = async () => {
     const { data, error } = await supabase
