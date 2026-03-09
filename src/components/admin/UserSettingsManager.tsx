@@ -195,8 +195,8 @@ export function UserSettingsManager() {
     );
 
     if (schedError) {
-      toast.error("Erro ao salvar escala.");
-    } else {
+      console.error("Schedule save error:", schedError);
+      toast.error(`Erro ao salvar escala: ${schedError.message}`);
       toast.success("Configurações salvas!");
       setEditingUser(null);
       fetchData();
