@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { WalletDashboard } from "@/components/admin/WalletDashboard";
 import { UserSettingsManager } from "@/components/admin/UserSettingsManager";
+import { StoreLocationManager } from "@/components/admin/StoreLocationManager";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
