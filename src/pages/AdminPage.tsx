@@ -1,0 +1,295 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Users,
+  Clock,
+  MapPin,
+  Search,
+  LogOut,
+  ArrowLeft,
+  Calendar,
+  Shield,
+} from "lucide-react";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+
+interface ProfileWithEntries {
+  user_id: string;
+  full_name: string | null;
+  department: string | null;
+  position: string | null;
+}
+
+interface TimeEntryRow {
+  id: string;
+  user_id: string;
+  type: string;
+  timestamp: string;
+  latitude: number;
+  longitude: number;
+  photo_url: string | null;
+}
+
+export default function AdminPage() {
+  const { signOut, user } = useAuth();
+  const navigate = useNavigate();
+  const [profiles, setProfiles] = useState<ProfileWithEntries[]>([]);
+  const [entries, setEntries] = useState<TimeEntryRow[]>([]);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [dateFilter, setDateFilter] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProfiles();
+  }, []);
+
+  useEffect(() => {
+    fetchEntries();
+  }, [selectedUser, dateFilter]);
+
+  const fetchProfiles = async () => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("user_id, full_name, department, position");
+    if (error) {
+      toast.error("Erro ao carregar usuários");
+      return;
+    }
+    setProfiles(data || []);
+    setLoading(false);
+  };
+
+  const fetchEntries = async () => {
+    let query = supabase
+      .from("time_entries")
+      .select("*")
+      .gte("timestamp", `${dateFilter}T00:00:00`)
+      .lte("timestamp", `${dateFilter}T23:59:59`)
+      .order("timestamp", { ascending: false });
+
+    if (selectedUser) {
+      query = query.eq("user_id", selectedUser);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      toast.error("Erro ao carregar registros");
+      return;
+    }
+    setEntries((data as TimeEntryRow[]) || []);
+  };
+
+  const getUserName = (userId: string) => {
+    const profile = profiles.find((p) => p.user_id === userId);
+    return profile?.full_name || "Sem nome";
+  };
+
+  const filteredProfiles = profiles.filter(
+    (p) =>
+      !search ||
+      p.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+      p.department?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalEntradas = entries.filter((e) => e.type === "entrada").length;
+  const totalSaidas = entries.filter((e) => e.type === "saída").length;
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="glass border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary" />
+            <h1 className="text-lg font-heading font-bold">Painel Admin</h1>
+          </div>
+        </div>
+        <Button variant="outline" size="sm" onClick={signOut}>
+          <LogOut className="w-4 h-4 mr-1" /> Sair
+        </Button>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+        {/* Stats cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="pt-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Users className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-heading font-bold">{profiles.length}</p>
+                <p className="text-sm text-muted-foreground">Colaboradores</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-success/10 flex items-center justify-center">
+                <Clock className="w-6 h-6 text-success" />
+              </div>
+              <div>
+                <p className="text-2xl font-heading font-bold">{totalEntradas}</p>
+                <p className="text-sm text-muted-foreground">Entradas hoje</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-destructive/10 flex items-center justify-center">
+                <Clock className="w-6 h-6 text-destructive" />
+              </div>
+              <div>
+                <p className="text-2xl font-heading font-bold">{totalSaidas}</p>
+                <p className="text-sm text-muted-foreground">Saídas hoje</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-heading">Filtros</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar colaborador..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="w-[200px]">
+              <Select
+                value={selectedUser || "all"}
+                onValueChange={(v) => setSelectedUser(v === "all" ? null : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os usuários" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {filteredProfiles.map((p) => (
+                    <SelectItem key={p.user_id} value={p.user_id}>
+                      {p.full_name || "Sem nome"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <Input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="w-[160px]"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Entries table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-heading">
+              Registros de Ponto — {new Date(dateFilter + "T12:00:00").toLocaleDateString("pt-BR")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {entries.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                Nenhum registro encontrado para esta data.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Colaborador</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Horário</TableHead>
+                      <TableHead>Localização</TableHead>
+                      <TableHead>Foto</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {entries.map((entry) => (
+                      <TableRow key={entry.id}>
+                        <TableCell className="font-medium">
+                          {getUserName(entry.user_id)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={entry.type === "entrada" ? "default" : "destructive"}
+                          >
+                            {entry.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(entry.timestamp).toLocaleTimeString("pt-BR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin className="w-3 h-3" />
+                            {entry.latitude.toFixed(4)}, {entry.longitude.toFixed(4)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {entry.photo_url ? (
+                            <img
+                              src={entry.photo_url}
+                              alt="Registro"
+                              className="w-8 h-8 rounded-full object-cover border border-border"
+                            />
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  );
+}
