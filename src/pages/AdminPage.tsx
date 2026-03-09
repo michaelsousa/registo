@@ -53,6 +53,7 @@ export default function AdminPage() {
   const [dateTo, setDateTo] = useState(new Date().toISOString().split("T")[0]);
   const [useDateRange, setUseDateRange] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { viewEntry, ReceiptDialog } = useReceiptDialog();
 
   useEffect(() => { fetchProfiles(); }, []);
   useEffect(() => { fetchEntries(); }, [selectedUser, dateFilter, dateFrom, dateTo, useDateRange]);
