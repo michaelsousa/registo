@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { MapPin, Fingerprint, Clock, History, LogOut, Shield, Settings, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { LiveClock } from "@/components/LiveClock";
 import { CameraCapture } from "@/components/CameraCapture";
 import { TimeEntryCard, TimeEntry } from "@/components/TimeEntryCard";
+import { WorkTimer } from "@/components/WorkTimer";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { useReceiptDialog } from "@/components/ReceiptDialog";
 
 type Step = "idle" | "pin" | "camera" | "processing";
 
