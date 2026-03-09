@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
-import { MapPin, Fingerprint, Clock, History, LogOut, Shield, Settings } from "lucide-react";
+import { MapPin, Fingerprint, Clock, History, LogOut, Shield, Settings, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { LiveClock } from "@/components/LiveClock";
 import { CameraCapture } from "@/components/CameraCapture";
 import { TimeEntryCard, TimeEntry } from "@/components/TimeEntryCard";
@@ -10,8 +12,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 
-type Step = "idle" | "camera" | "processing";
+type Step = "idle" | "pin" | "camera" | "processing";
 
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371000;
