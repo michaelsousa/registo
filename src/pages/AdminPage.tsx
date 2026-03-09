@@ -48,10 +48,13 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState(new Date().toISOString().split("T")[0]);
+  const [dateFrom, setDateFrom] = useState(new Date().toISOString().split("T")[0]);
+  const [dateTo, setDateTo] = useState(new Date().toISOString().split("T")[0]);
+  const [useDateRange, setUseDateRange] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { fetchProfiles(); }, []);
-  useEffect(() => { fetchEntries(); }, [selectedUser, dateFilter]);
+  useEffect(() => { fetchEntries(); }, [selectedUser, dateFilter, dateFrom, dateTo, useDateRange]);
 
   const fetchProfiles = async () => {
     const { data, error } = await supabase
@@ -63,11 +66,13 @@ export default function AdminPage() {
   };
 
   const fetchEntries = async () => {
+    const fromDate = useDateRange ? dateFrom : dateFilter;
+    const toDate = useDateRange ? dateTo : dateFilter;
     let query = supabase
       .from("time_entries")
       .select("*")
-      .gte("timestamp", `${dateFilter}T00:00:00`)
-      .lte("timestamp", `${dateFilter}T23:59:59`)
+      .gte("timestamp", `${fromDate}T00:00:00`)
+      .lte("timestamp", `${toDate}T23:59:59`)
       .order("timestamp", { ascending: false });
     if (selectedUser) query = query.eq("user_id", selectedUser);
     const { data, error } = await query;
@@ -287,7 +292,7 @@ export default function AdminPage() {
               <CardHeader>
                 <CardTitle className="text-base font-heading">Filtros</CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-wrap gap-4">
+              <CardContent className="flex flex-wrap gap-4 items-end">
                 <div className="w-[200px]">
                   <Select
                     value={selectedUser || "all"}
@@ -307,33 +312,70 @@ export default function AdminPage() {
                   </Select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="date"
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value)}
-                    className="w-[160px]"
-                  />
+                  <Button
+                    size="sm"
+                    variant={!useDateRange ? "default" : "outline"}
+                    onClick={() => setUseDateRange(false)}
+                  >
+                    Dia
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={useDateRange ? "default" : "outline"}
+                    onClick={() => setUseDateRange(true)}
+                  >
+                    Período
+                  </Button>
                 </div>
+                {!useDateRange ? (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="date"
+                      value={dateFilter}
+                      onChange={(e) => setDateFilter(e.target.value)}
+                      className="w-[160px]"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="w-[145px]"
+                    />
+                    <span className="text-xs text-muted-foreground">até</span>
+                    <Input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="w-[145px]"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base font-heading">
-                  Registros — {new Date(dateFilter + "T12:00:00").toLocaleDateString("pt-BR")}
+                  Registros {useDateRange
+                    ? `${new Date(dateFrom + "T12:00:00").toLocaleDateString("pt-BR")} — ${new Date(dateTo + "T12:00:00").toLocaleDateString("pt-BR")}`
+                    : `— ${new Date(dateFilter + "T12:00:00").toLocaleDateString("pt-BR")}`}
                 </CardTitle>
                 {entries.length > 0 && (
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" onClick={() => {
                       const el = document.getElementById("entries-export");
-                      if (el) exportElementAsPNG(el, `ponto-${dateFilter}`);
+                      if (el) exportElementAsPNG(el, `ponto-${useDateRange ? `${dateFrom}_${dateTo}` : dateFilter}`);
                     }}>
                       <FileImage className="w-4 h-4 mr-1" /> PNG
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => {
                       const el = document.getElementById("entries-export");
-                      if (el) exportElementAsPDF(el, `ponto-${dateFilter}`);
+                      if (el) exportElementAsPDF(el, `ponto-${useDateRange ? `${dateFrom}_${dateTo}` : dateFilter}`);
                     }}>
                       <Download className="w-4 h-4 mr-1" /> PDF
                     </Button>
@@ -355,11 +397,12 @@ export default function AdminPage() {
                           <TableHead>Horário</TableHead>
                           <TableHead>Localização</TableHead>
                           <TableHead>Foto</TableHead>
+                          <TableHead>Exportar</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {entries.map((entry) => (
-                          <TableRow key={entry.id}>
+                          <TableRow key={entry.id} id={`entry-${entry.id}`}>
                             <TableCell className="font-medium">{getUserName(entry.user_id)}</TableCell>
                             <TableCell>
                               <Badge variant={entry.type === "entrada" ? "default" : "destructive"}>
@@ -383,6 +426,22 @@ export default function AdminPage() {
                               ) : (
                                 <span className="text-xs text-muted-foreground">—</span>
                               )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
+                                  const el = document.getElementById(`entry-${entry.id}`);
+                                  if (el) exportElementAsPNG(el, `ponto-${entry.id}`);
+                                }}>
+                                  <FileImage className="w-3 h-3" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
+                                  const el = document.getElementById(`entry-${entry.id}`);
+                                  if (el) exportElementAsPDF(el, `ponto-${entry.id}`);
+                                }}>
+                                  <Download className="w-3 h-3" />
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
