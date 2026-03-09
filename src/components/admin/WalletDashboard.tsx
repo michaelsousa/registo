@@ -255,8 +255,24 @@ export function WalletDashboard() {
 
       {/* Recent transactions */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base font-heading">Últimas Transações</CardTitle>
+          {transactions.length > 0 && (
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => {
+                const el = document.getElementById("wallet-tx-export");
+                if (el) exportElementAsPNG(el, "transacoes-carteira");
+              }}>
+                <FileImage className="w-4 h-4 mr-1" /> PNG
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => {
+                const el = document.getElementById("wallet-tx-export");
+                if (el) exportElementAsPDF(el, "transacoes-carteira");
+              }}>
+                <Download className="w-4 h-4 mr-1" /> PDF
+              </Button>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           {transactions.length === 0 ? (
