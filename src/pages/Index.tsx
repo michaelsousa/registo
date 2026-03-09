@@ -9,18 +9,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 
 type Step = "idle" | "camera" | "processing";
 
 const Index = () => {
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, isApproved, signOut } = useAuth();
   const navigate = useNavigate();
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [step, setStep] = useState<Step>("idle");
   const [pendingType, setPendingType] = useState<"entrada" | "saída">("entrada");
   const geo = useGeolocation();
 
-  // Fetch today's entries
   useEffect(() => {
     if (!user) return;
     const today = new Date().toISOString().split("T")[0];
@@ -59,7 +59,6 @@ const Index = () => {
   const handlePhotoCapture = useCallback(
     async (photoUrl: string) => {
       setStep("processing");
-
       await new Promise((r) => setTimeout(r, 1200));
 
       if (!geo.position) {
@@ -108,9 +107,40 @@ const Index = () => {
     setStep("idle");
   }, []);
 
+  // Block unapproved users
+  if (isApproved === false && !isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <header className="glass border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
+              <Fingerprint className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <h1 className="text-lg font-heading font-bold text-foreground">PontoFácil</h1>
+          </div>
+          <Button variant="ghost" size="sm" onClick={signOut}>
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </header>
+        <main className="flex-1 flex items-center justify-center px-4">
+          <Card className="max-w-md w-full">
+            <CardContent className="pt-6 text-center space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center">
+                <Clock className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h2 className="text-xl font-heading font-bold">Aguardando aprovação</h2>
+              <p className="text-muted-foreground text-sm">
+                Seu cadastro está pendente de aprovação pelo administrador. Você será notificado quando for aprovado.
+              </p>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
       <header className="glass border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
@@ -130,7 +160,6 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Main */}
       <main className="flex-1 flex flex-col items-center px-4 py-8 max-w-lg mx-auto w-full gap-8">
         <LiveClock />
 
@@ -139,15 +168,10 @@ const Index = () => {
             <>
               <p className="text-muted-foreground text-sm">
                 Próximo registro:{" "}
-                <span
-                  className={`font-semibold ${
-                    nextType === "entrada" ? "text-success" : "text-destructive"
-                  }`}
-                >
+                <span className={`font-semibold ${nextType === "entrada" ? "text-success" : "text-destructive"}`}>
                   {nextType.toUpperCase()}
                 </span>
               </p>
-
               <button
                 onClick={handleStartPunch}
                 className="relative w-36 h-36 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 group"
@@ -155,16 +179,11 @@ const Index = () => {
                 <Fingerprint className="w-16 h-16 group-hover:scale-110 transition-transform" />
                 <span className="absolute inset-0 rounded-full border-4 border-primary/30 animate-pulse-ring" />
               </button>
-
-              <p className="text-xs text-muted-foreground">
-                Toque para registrar com foto e localização
-              </p>
-
+              <p className="text-xs text-muted-foreground">Toque para registrar com foto e localização</p>
               {geo.position && (
                 <div className="flex items-center gap-1.5 text-xs text-success">
                   <MapPin className="w-3 h-3" />
-                  GPS ativo — {geo.position.latitude.toFixed(4)},{" "}
-                  {geo.position.longitude.toFixed(4)}
+                  GPS ativo — {geo.position.latitude.toFixed(4)}, {geo.position.longitude.toFixed(4)}
                 </div>
               )}
               {geo.error && (
@@ -175,11 +194,7 @@ const Index = () => {
               )}
             </>
           )}
-
-          {step === "camera" && (
-            <CameraCapture onCapture={handlePhotoCapture} onCancel={handleCancel} />
-          )}
-
+          {step === "camera" && <CameraCapture onCapture={handlePhotoCapture} onCancel={handleCancel} />}
           {step === "processing" && (
             <div className="flex flex-col items-center gap-4 py-8">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
@@ -194,9 +209,7 @@ const Index = () => {
           <div className="w-full">
             <div className="flex items-center gap-2 mb-4">
               <History className="w-4 h-4 text-muted-foreground" />
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                Registros de hoje
-              </h2>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Registros de hoje</h2>
             </div>
             <div className="flex flex-col gap-3">
               {entries.map((entry) => (
