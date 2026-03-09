@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { MapPin, Fingerprint, Clock, History, LogOut, Shield } from "lucide-react";
+import { MapPin, Fingerprint, Clock, History, LogOut, Shield, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LiveClock } from "@/components/LiveClock";
 import { CameraCapture } from "@/components/CameraCapture";
