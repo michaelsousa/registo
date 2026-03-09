@@ -13,42 +13,74 @@ import { Card, CardContent } from "@/components/ui/card";
 
 type Step = "idle" | "camera" | "processing";
 
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+interface StoreLocation {
+  latitude: number;
+  longitude: number;
+  radius_meters: number;
+  name: string;
+}
+
 const Index = () => {
   const { user, isAdmin, isApproved, signOut } = useAuth();
   const navigate = useNavigate();
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [step, setStep] = useState<Step>("idle");
   const [pendingType, setPendingType] = useState<"entrada" | "saída">("entrada");
+  const [storeLocations, setStoreLocations] = useState<StoreLocation[]>([]);
   const geo = useGeolocation();
 
   useEffect(() => {
     if (!user) return;
     const today = new Date().toISOString().split("T")[0];
-    supabase
-      .from("time_entries")
-      .select("*")
-      .eq("user_id", user.id)
-      .gte("timestamp", `${today}T00:00:00`)
-      .lte("timestamp", `${today}T23:59:59`)
-      .order("timestamp", { ascending: false })
-      .then(({ data }) => {
-        if (data) {
-          setEntries(
-            data.map((e) => ({
-              id: e.id,
-              type: e.type as "entrada" | "saída",
-              timestamp: new Date(e.timestamp),
-              latitude: e.latitude,
-              longitude: e.longitude,
-              photoUrl: e.photo_url || "",
-            }))
-          );
-        }
-      });
+    Promise.all([
+      supabase
+        .from("time_entries")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("timestamp", `${today}T00:00:00`)
+        .lte("timestamp", `${today}T23:59:59`)
+        .order("timestamp", { ascending: false }),
+      supabase
+        .from("store_locations")
+        .select("latitude, longitude, radius_meters, name")
+        .eq("is_active", true),
+    ]).then(([entriesRes, locsRes]) => {
+      if (entriesRes.data) {
+        setEntries(
+          entriesRes.data.map((e) => ({
+            id: e.id,
+            type: e.type as "entrada" | "saída",
+            timestamp: new Date(e.timestamp),
+            latitude: e.latitude,
+            longitude: e.longitude,
+            photoUrl: e.photo_url || "",
+          }))
+        );
+      }
+      setStoreLocations((locsRes.data as StoreLocation[]) || []);
+    });
   }, [user]);
 
   const nextType: "entrada" | "saída" =
     entries.length === 0 || entries[0].type === "saída" ? "entrada" : "saída";
+
+  const checkProximity = useCallback((lat: number, lng: number): { ok: boolean; nearest?: string } => {
+    if (storeLocations.length === 0) return { ok: true }; // No locations configured = allow anywhere
+    for (const loc of storeLocations) {
+      const dist = haversineDistance(lat, lng, loc.latitude, loc.longitude);
+      if (dist <= loc.radius_meters) return { ok: true };
+    }
+    return { ok: false, nearest: storeLocations[0]?.name };
+  }, [storeLocations]);
 
   const handleStartPunch = useCallback(() => {
     setPendingType(nextType);
@@ -63,6 +95,13 @@ const Index = () => {
 
       if (!geo.position) {
         toast.error("Localização não disponível. Tente novamente.");
+        setStep("idle");
+        return;
+      }
+
+      const proximity = checkProximity(geo.position.latitude, geo.position.longitude);
+      if (!proximity.ok) {
+        toast.error(`Você está fora da área permitida${proximity.nearest ? ` (${proximity.nearest})` : ""}. Aproxime-se da loja para bater o ponto.`);
         setStep("idle");
         return;
       }

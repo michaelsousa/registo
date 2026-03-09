@@ -50,6 +50,39 @@ export type Database = {
         }
         Relationships: []
       }
+      store_locations: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          latitude: number
+          longitude: number
+          name: string
+          radius_meters: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          latitude: number
+          longitude: number
+          name?: string
+          radius_meters?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          latitude?: number
+          longitude?: number
+          name?: string
+          radius_meters?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       time_entries: {
         Row: {
           created_at: string
