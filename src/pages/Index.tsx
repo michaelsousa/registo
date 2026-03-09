@@ -61,7 +61,13 @@ const Index = () => {
         .from("store_locations")
         .select("latitude, longitude, radius_meters, name")
         .eq("is_active", true),
-    ]).then(([entriesRes, locsRes]) => {
+      supabase
+        .from("user_pins" as any)
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]).then(([entriesRes, locsRes, pinRes]) => {
+      setHasPin(!!(pinRes.data as any));
       if (entriesRes.data) {
         setEntries(
           entriesRes.data.map((e) => ({
