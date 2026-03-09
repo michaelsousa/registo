@@ -174,7 +174,9 @@ export function UserSettingsManager() {
     ]);
 
     if (profRes.error || setRes.error) {
-      toast.error("Erro ao salvar configurações.");
+      console.error("Profile save error:", profRes.error);
+      console.error("Settings save error:", setRes.error);
+      toast.error(`Erro ao salvar: ${profRes.error?.message || setRes.error?.message}`);
       setSaving(false);
       return;
     }
