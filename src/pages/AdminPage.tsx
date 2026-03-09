@@ -458,6 +458,7 @@ export default function AdminPage() {
           </TabsContent>
         </Tabs>
       </main>
+      <ReceiptDialog />
     </div>
   );
 }
