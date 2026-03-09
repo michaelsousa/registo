@@ -99,6 +99,13 @@ const Index = () => {
         return;
       }
 
+      const proximity = checkProximity(geo.position.latitude, geo.position.longitude);
+      if (!proximity.ok) {
+        toast.error(`Você está fora da área permitida${proximity.nearest ? ` (${proximity.nearest})` : ""}. Aproxime-se da loja para bater o ponto.`);
+        setStep("idle");
+        return;
+      }
+
       const { data, error } = await supabase
         .from("time_entries")
         .insert({
