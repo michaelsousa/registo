@@ -22,48 +22,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isApproved, setIsApproved] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const checkAdmin = async (userId: string) => {
-    const { data } = await supabase.rpc("has_role", {
-      _user_id: userId,
-      _role: "admin",
-    });
-    setIsAdmin(!!data);
-  };
-
-  const checkApproval = async (userId: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("approved")
-      .eq("user_id", userId)
-      .single();
-    setIsApproved(data?.approved ?? false);
+  const loadUserData = async (userId: string) => {
+    try {
+      const [roleResult, profileResult] = await Promise.all([
+        supabase.rpc("has_role", { _user_id: userId, _role: "admin" as const }),
+        supabase.from("profiles").select("approved").eq("user_id", userId).maybeSingle(),
+      ]);
+      setIsAdmin(!!roleResult.data);
+      setIsApproved(profileResult.data?.approved ?? false);
+    } catch {
+      setIsAdmin(false);
+      setIsApproved(false);
+    }
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await checkAdmin(session.user.id);
-          await checkApproval(session.user.id);
-        } else {
-          setIsAdmin(false);
-          setIsApproved(null);
-        }
-        setLoading(false);
-      }
-    );
-
+    // First restore session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdmin(session.user.id);
-        checkApproval(session.user.id);
+        loadUserData(session.user.id).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
+
+    // Then listen for changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          loadUserData(session.user.id).finally(() => setLoading(false));
+        } else {
+          setIsAdmin(false);
+          setIsApproved(null);
+          setLoading(false);
+        }
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);
