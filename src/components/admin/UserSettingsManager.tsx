@@ -207,6 +207,12 @@ export function UserSettingsManager() {
       }))
     );
 
+    // Save PIN if provided
+    if (pin.length === 4) {
+      await supabase.from("user_pins" as any).delete().eq("user_id", editingUser);
+      await supabase.from("user_pins" as any).insert({ user_id: editingUser, pin_hash: pin } as any);
+    }
+
     if (schedError) {
       console.error("Schedule save error:", schedError);
       toast.error(`Erro ao salvar escala: ${schedError.message}`);
