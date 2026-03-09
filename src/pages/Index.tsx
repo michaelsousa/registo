@@ -241,9 +241,21 @@ const Index = () => {
       toast.success(
         `${pendingType === "entrada" ? "Entrada" : "Saída"} registrada com sucesso!`
       );
+
+      // Auto-show receipt
+      viewEntry({
+        id: data.id,
+        userName,
+        type: data.type,
+        timestamp: data.timestamp,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        photoUrl: data.photo_url,
+      });
+
       setStep("idle");
     },
-    [geo.position, pendingType, user]
+    [geo.position, pendingType, user, userName, viewEntry]
   );
 
   const handleCancel = useCallback(() => {
