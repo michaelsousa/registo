@@ -292,7 +292,7 @@ export default function AdminPage() {
               <CardHeader>
                 <CardTitle className="text-base font-heading">Filtros</CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-wrap gap-4">
+              <CardContent className="flex flex-wrap gap-4 items-end">
                 <div className="w-[200px]">
                   <Select
                     value={selectedUser || "all"}
@@ -312,14 +312,49 @@ export default function AdminPage() {
                   </Select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="date"
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value)}
-                    className="w-[160px]"
-                  />
+                  <Button
+                    size="sm"
+                    variant={!useDateRange ? "default" : "outline"}
+                    onClick={() => setUseDateRange(false)}
+                  >
+                    Dia
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={useDateRange ? "default" : "outline"}
+                    onClick={() => setUseDateRange(true)}
+                  >
+                    Período
+                  </Button>
                 </div>
+                {!useDateRange ? (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="date"
+                      value={dateFilter}
+                      onChange={(e) => setDateFilter(e.target.value)}
+                      className="w-[160px]"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="w-[145px]"
+                    />
+                    <span className="text-xs text-muted-foreground">até</span>
+                    <Input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="w-[145px]"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
 
