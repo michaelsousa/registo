@@ -35,6 +35,7 @@ const Index = () => {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [step, setStep] = useState<Step>("idle");
   const [pendingType, setPendingType] = useState<"entrada" | "saída">("entrada");
+  const [storeLocations, setStoreLocations] = useState<StoreLocation[]>([]);
   const geo = useGeolocation();
 
   useEffect(() => {
