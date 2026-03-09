@@ -368,6 +368,10 @@ export default function AdminPage() {
               </CardContent>
             </Card>
           </TabsContent>
+          {/* Wallet Tab */}
+          <TabsContent value="wallet">
+            <WalletDashboard />
+          </TabsContent>
         </Tabs>
       </main>
     </div>

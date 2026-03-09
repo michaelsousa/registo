@@ -149,6 +149,9 @@ const Index = () => {
           <h1 className="text-lg font-heading font-bold text-foreground">PontoFácil</h1>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate("/settings")}>
+            <Settings className="w-4 h-4" />
+          </Button>
           {isAdmin && (
             <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
               <Shield className="w-4 h-4 mr-1" /> Admin
