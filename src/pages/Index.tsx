@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { MapPin, Fingerprint, Clock, History, LogOut, Shield, Settings, KeyRound } from "lucide-react";
+import { MapPin, Fingerprint, Clock, History, LogOut, Shield, Settings, KeyRound, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -238,6 +238,27 @@ const Index = () => {
       };
 
       setEntries((prev) => [newEntry, ...prev]);
+
+      // Auto-credit wallet on "saída"
+      if (pendingType === "saída" && hourlyRate > 0) {
+        // Find matching entrada (most recent)
+        const lastEntrada = entries.find((e) => e.type === "entrada");
+        if (lastEntrada) {
+          const hoursWorked = (new Date(data.timestamp).getTime() - lastEntrada.timestamp.getTime()) / 3600000;
+          const earned = hoursWorked * hourlyRate;
+          if (earned > 0) {
+            await supabase.from("wallet_transactions").insert({
+              user_id: user!.id,
+              created_by: user!.id,
+              type: "credit",
+              amount: parseFloat(earned.toFixed(2)),
+              description: `Turno ${lastEntrada.timestamp.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} - ${new Date(data.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} (${hoursWorked.toFixed(1)}h)`,
+            });
+            toast.success(`R$ ${earned.toFixed(2)} creditado na carteira!`);
+          }
+        }
+      }
+
       toast.success(
         `${pendingType === "entrada" ? "Entrada" : "Saída"} registrada com sucesso!`
       );
@@ -304,6 +325,9 @@ const Index = () => {
           <h1 className="text-lg font-heading font-bold text-foreground">PontoFácil</h1>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate("/wallet")}>
+            <Wallet className="w-4 h-4" />
+          </Button>
           <Button variant="outline" size="sm" onClick={() => navigate("/settings")}>
             <Settings className="w-4 h-4" />
           </Button>
