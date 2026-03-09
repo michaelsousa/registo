@@ -41,27 +41,33 @@ const Index = () => {
   useEffect(() => {
     if (!user) return;
     const today = new Date().toISOString().split("T")[0];
-    supabase
-      .from("time_entries")
-      .select("*")
-      .eq("user_id", user.id)
-      .gte("timestamp", `${today}T00:00:00`)
-      .lte("timestamp", `${today}T23:59:59`)
-      .order("timestamp", { ascending: false })
-      .then(({ data }) => {
-        if (data) {
-          setEntries(
-            data.map((e) => ({
-              id: e.id,
-              type: e.type as "entrada" | "saída",
-              timestamp: new Date(e.timestamp),
-              latitude: e.latitude,
-              longitude: e.longitude,
-              photoUrl: e.photo_url || "",
-            }))
-          );
-        }
-      });
+    Promise.all([
+      supabase
+        .from("time_entries")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("timestamp", `${today}T00:00:00`)
+        .lte("timestamp", `${today}T23:59:59`)
+        .order("timestamp", { ascending: false }),
+      supabase
+        .from("store_locations")
+        .select("latitude, longitude, radius_meters, name")
+        .eq("is_active", true),
+    ]).then(([entriesRes, locsRes]) => {
+      if (entriesRes.data) {
+        setEntries(
+          entriesRes.data.map((e) => ({
+            id: e.id,
+            type: e.type as "entrada" | "saída",
+            timestamp: new Date(e.timestamp),
+            latitude: e.latitude,
+            longitude: e.longitude,
+            photoUrl: e.photo_url || "",
+          }))
+        );
+      }
+      setStoreLocations((locsRes.data as StoreLocation[]) || []);
+    });
   }, [user]);
 
   const nextType: "entrada" | "saída" =
