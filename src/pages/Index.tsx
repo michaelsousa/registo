@@ -321,6 +321,14 @@ const Index = () => {
       <main className="flex-1 flex flex-col items-center px-4 py-8 max-w-lg mx-auto w-full gap-8">
         <LiveClock />
 
+        {/* Work timer - shows when clocked in */}
+        {nextType === "saída" && entries.length > 0 && entries[0].type === "entrada" && (
+          <WorkTimer
+            startTime={entries[entries.length > 0 ? entries.findIndex(e => e.type === "entrada") : 0]?.timestamp || new Date()}
+            hourlyRate={hourlyRate}
+            isRunning={true}
+          />
+        )}
         <div className="w-full glass rounded-2xl p-8 flex flex-col items-center gap-6">
           {step === "idle" && (
             <>
