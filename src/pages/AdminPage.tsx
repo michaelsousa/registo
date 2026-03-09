@@ -430,20 +430,11 @@ export default function AdminPage() {
                               )}
                             </TableCell>
                             <TableCell>
-                              <div className="flex gap-1">
-                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
-                                  const el = document.getElementById(`entry-${entry.id}`);
-                                  if (el) exportElementAsPNG(el, `ponto-${entry.id}`);
-                                }}>
-                                  <FileImage className="w-3 h-3" />
-                                </Button>
-                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
-                                  const el = document.getElementById(`entry-${entry.id}`);
-                                  if (el) exportElementAsPDF(el, `ponto-${entry.id}`);
-                                }}>
-                                  <Download className="w-3 h-3" />
-                                </Button>
-                              </div>
+                              <EntryReceiptActions
+                                entry={entry}
+                                userName={getUserName(entry.user_id)}
+                                onView={viewEntry}
+                              />
                             </TableCell>
                           </TableRow>
                         ))}
