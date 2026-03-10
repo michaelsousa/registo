@@ -325,6 +325,11 @@ const WalletPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+      <TransactionDetailDialog
+        transaction={selectedTx}
+        open={!!selectedTx}
+        onOpenChange={(open) => { if (!open) setSelectedTx(null); }}
+      />
     </div>
   );
 };
