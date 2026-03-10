@@ -478,6 +478,18 @@ export default function AdminPage() {
         </Tabs>
       </main>
       <ReceiptDialog />
+      <AdminPunchDialog
+        open={showPunchDialog}
+        onOpenChange={setShowPunchDialog}
+        profiles={approvedProfiles}
+        onSuccess={fetchEntries}
+      />
+      <EditEntryDialog
+        open={!!editingEntry}
+        onOpenChange={(open) => { if (!open) setEditingEntry(null); }}
+        entry={editingEntry}
+        onSuccess={fetchEntries}
+      />
     </div>
   );
 }
