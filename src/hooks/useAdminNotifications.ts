@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useNotificationModal } from "@/components/NotificationModal";
 
 function playNotificationSound() {
   try {
@@ -30,12 +31,6 @@ async function getUserName(userId: string): Promise<string> {
   return data?.full_name || "Colaborador";
 }
 
-function requestNotificationPermission() {
-  if ("Notification" in window && Notification.permission === "default") {
-    Notification.requestPermission();
-  }
-}
-
 function showPushNotification(title: string, body: string) {
   if ("Notification" in window && Notification.permission === "granted") {
     try {
@@ -47,33 +42,24 @@ function showPushNotification(title: string, body: string) {
         requireInteraction: true,
       });
     } catch {
-      // Notification API not available (e.g. some mobile browsers)
+      // Notification API not available
     }
   }
 }
 
-function notify(title: string, body: string) {
-  playNotificationSound();
-  toast.info(title, { description: body });
-  showPushNotification(title, body);
-}
-
-function notifyWarning(title: string, body: string) {
-  playNotificationSound();
-  toast.warning(title, { description: body });
-  showPushNotification(title, body);
-}
-
 export function useAdminNotifications() {
   const { user, isAdmin } = useAuth();
+  const { showNotification } = useNotificationModal();
   const initialized = useRef(false);
 
   useEffect(() => {
     if (!user || !isAdmin || initialized.current) return;
     initialized.current = true;
 
-    // Request permission on init
-    requestNotificationPermission();
+    // Request notification permission
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
 
     const timeChannel = supabase
       .channel("admin-time-entries")
@@ -89,7 +75,11 @@ export function useAdminNotifications() {
             hour: "2-digit",
             minute: "2-digit",
           });
-          notify(`${type} — ${name}`, `Ponto registrado às ${time}`);
+          const title = `${type} — ${name}`;
+          const body = `Ponto registrado às ${time}`;
+          playNotificationSound();
+          showPushNotification(title, body);
+          showNotification({ title, body, variant: "info" });
         }
       )
       .subscribe();
@@ -106,12 +96,23 @@ export function useAdminNotifications() {
           const amount = `R$ ${Number(tx.amount).toFixed(2)}`;
 
           if (tx.type === "withdrawal") {
-            notifyWarning(`💸 Pedido de saque — ${name}`, `${amount} — ${tx.description || "Saque solicitado"}`);
+            const title = `💸 Pedido de saque — ${name}`;
+            const body = `${amount} — ${tx.description || "Saque solicitado"}`;
+            playNotificationSound();
+            showPushNotification(title, body);
+            showNotification({ title, body, variant: "warning" });
           } else if (tx.type === "transfer_in") {
-            notify(`🔄 Transferência recebida — ${name}`, amount);
+            const title = `🔄 Transferência recebida — ${name}`;
+            playNotificationSound();
+            showPushNotification(title, amount);
+            showNotification({ title, body: amount, variant: "info" });
           } else if (tx.type === "transfer_out") {
             const senderName = await getUserName(tx.created_by);
-            notify(`🔄 Transferência enviada — ${senderName}`, `${amount} para ${name}`);
+            const title = `🔄 Transferência enviada — ${senderName}`;
+            const body = `${amount} para ${name}`;
+            playNotificationSound();
+            showPushNotification(title, body);
+            showNotification({ title, body, variant: "info" });
           }
         }
       )
@@ -122,5 +123,5 @@ export function useAdminNotifications() {
       supabase.removeChannel(walletChannel);
       initialized.current = false;
     };
-  }, [user, isAdmin]);
+  }, [user, isAdmin, showNotification]);
 }

@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { NotificationModalProvider } from "@/components/NotificationModal";
 import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
@@ -48,6 +49,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <NotificationModalProvider>
           <AdminNotificationListener />
           <Routes>
             <Route path="/auth" element={<AuthRoute><AuthPage /></AuthRoute>} />
@@ -57,6 +59,7 @@ const App = () => (
             <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </NotificationModalProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

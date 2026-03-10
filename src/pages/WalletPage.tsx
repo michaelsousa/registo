@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Wallet, ArrowLeft, TrendingUp, TrendingDown, Send, Banknote, History } from "lucide-react";
 import { toast } from "sonner";
+import { TransactionDetailDialog } from "@/components/TransactionDetailDialog";
 
 interface Transaction {
   id: string;
@@ -41,7 +42,7 @@ const WalletPage = () => {
   const [transferTo, setTransferTo] = useState("");
   const [profiles, setProfiles] = useState<ProfileOption[]>([]);
   const [loading, setLoading] = useState(false);
-
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   useEffect(() => {
     if (!user) return;
     fetchData();
@@ -210,7 +211,7 @@ const WalletPage = () => {
           ) : (
             <div className="flex flex-col gap-2">
               {transactions.map((tx) => (
-                <Card key={tx.id} className="overflow-hidden">
+                <Card key={tx.id} className="overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all" onClick={() => setSelectedTx(tx)}>
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.type === "credit" ? "bg-success/10" : "bg-destructive/10"}`}>
@@ -324,6 +325,11 @@ const WalletPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+      <TransactionDetailDialog
+        transaction={selectedTx}
+        open={!!selectedTx}
+        onOpenChange={(open) => { if (!open) setSelectedTx(null); }}
+      />
     </div>
   );
 };
