@@ -20,6 +20,8 @@ import { useReceiptDialog, EntryReceiptActions } from "@/components/ReceiptDialo
 import { WalletDashboard } from "@/components/admin/WalletDashboard";
 import { UserSettingsManager } from "@/components/admin/UserSettingsManager";
 import { StoreLocationManager } from "@/components/admin/StoreLocationManager";
+import { AdminPunchDialog } from "@/components/admin/AdminPunchDialog";
+import { EditEntryDialog } from "@/components/admin/EditEntryDialog";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
