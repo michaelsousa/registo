@@ -56,6 +56,8 @@ export default function AdminPage() {
   const [useDateRange, setUseDateRange] = useState(false);
   const [loading, setLoading] = useState(true);
   const { viewEntry, ReceiptDialog } = useReceiptDialog();
+  const [showPunchDialog, setShowPunchDialog] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<TimeEntryRow | null>(null);
 
   useEffect(() => { fetchProfiles(); }, []);
   useEffect(() => { fetchEntries(); }, [selectedUser, dateFilter, dateFrom, dateTo, useDateRange]);
