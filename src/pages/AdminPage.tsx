@@ -450,6 +450,11 @@ export default function AdminPage() {
                                 onView={viewEntry}
                               />
                             </TableCell>
+                            <TableCell>
+                              <Button size="sm" variant="ghost" onClick={() => setEditingEntry(entry)}>
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
