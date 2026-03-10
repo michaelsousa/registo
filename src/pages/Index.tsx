@@ -276,7 +276,7 @@ const Index = () => {
 
       setStep("idle");
     },
-    [geo.position, pendingType, user, userName, viewEntry]
+    [geo.position, pendingType, user, userName, viewEntry, hourlyRate, entries, checkProximity]
   );
 
   const handleCancel = useCallback(() => {
