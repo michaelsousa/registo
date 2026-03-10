@@ -21,6 +21,7 @@ import { WalletDashboard } from "@/components/admin/WalletDashboard";
 import { UserSettingsManager } from "@/components/admin/UserSettingsManager";
 import { StoreLocationManager } from "@/components/admin/StoreLocationManager";
 import { AdminPunchDialog } from "@/components/admin/AdminPunchDialog";
+import { LiveWorkersDashboard } from "@/components/admin/LiveWorkersDashboard";
 import { EditEntryDialog } from "@/components/admin/EditEntryDialog";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
