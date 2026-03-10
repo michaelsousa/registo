@@ -183,6 +183,8 @@ export default function AdminPage() {
           </Card>
         </div>
 
+        <LiveWorkersDashboard />
+
         <Tabs defaultValue="users" className="space-y-4">
           <TabsList>
             <TabsTrigger value="users">
