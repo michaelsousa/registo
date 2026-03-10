@@ -371,22 +371,27 @@ export default function AdminPage() {
                     ? `${new Date(dateFrom + "T12:00:00").toLocaleDateString("pt-BR")} — ${new Date(dateTo + "T12:00:00").toLocaleDateString("pt-BR")}`
                     : `— ${new Date(dateFilter + "T12:00:00").toLocaleDateString("pt-BR")}`}
                 </CardTitle>
-                {entries.length > 0 && (
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => {
-                      const el = document.getElementById("entries-export");
-                      if (el) exportElementAsPNG(el, `ponto-${useDateRange ? `${dateFrom}_${dateTo}` : dateFilter}`);
-                    }}>
-                      <FileImage className="w-4 h-4 mr-1" /> PNG
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => {
-                      const el = document.getElementById("entries-export");
-                      if (el) exportElementAsPDF(el, `ponto-${useDateRange ? `${dateFrom}_${dateTo}` : dateFilter}`);
-                    }}>
-                      <Download className="w-4 h-4 mr-1" /> PDF
-                    </Button>
-                  </div>
-                )}
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => setShowPunchDialog(true)}>
+                    <Plus className="w-4 h-4 mr-1" /> Registrar Ponto
+                  </Button>
+                  {entries.length > 0 && (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => {
+                        const el = document.getElementById("entries-export");
+                        if (el) exportElementAsPNG(el, `ponto-${useDateRange ? `${dateFrom}_${dateTo}` : dateFilter}`);
+                      }}>
+                        <FileImage className="w-4 h-4 mr-1" /> PNG
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => {
+                        const el = document.getElementById("entries-export");
+                        if (el) exportElementAsPDF(el, `ponto-${useDateRange ? `${dateFrom}_${dateTo}` : dateFilter}`);
+                      }}>
+                        <Download className="w-4 h-4 mr-1" /> PDF
+                      </Button>
+                    </>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {entries.length === 0 ? (
