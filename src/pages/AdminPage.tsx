@@ -409,7 +409,7 @@ export default function AdminPage() {
                           <TableHead>Localização</TableHead>
                           <TableHead>Foto</TableHead>
                           <TableHead>Comprovante</TableHead>
-                        </TableRow>
+                          <TableHead>Ações</TableHead>
                       </TableHeader>
                       <TableBody>
                         {entries.map((entry) => (
