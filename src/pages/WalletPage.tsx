@@ -42,7 +42,7 @@ const WalletPage = () => {
   const [transferTo, setTransferTo] = useState("");
   const [profiles, setProfiles] = useState<ProfileOption[]>([]);
   const [loading, setLoading] = useState(false);
-
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   useEffect(() => {
     if (!user) return;
     fetchData();
