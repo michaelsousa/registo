@@ -59,6 +59,7 @@ const App = () => (
             <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </NotificationModalProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
