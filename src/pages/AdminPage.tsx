@@ -13,13 +13,15 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Users, Clock, MapPin, Search, LogOut, ArrowLeft, Calendar, Shield, UserCheck, UserX, Wallet, Settings, MapPinned, Download, FileImage, Eye,
+  Users, Clock, MapPin, Search, LogOut, ArrowLeft, Calendar, Shield, UserCheck, UserX, Wallet, Settings, MapPinned, Download, FileImage, Eye, Plus, Pencil,
 } from "lucide-react";
 import { exportElementAsPNG, exportElementAsPDF } from "@/lib/exportUtils";
 import { useReceiptDialog, EntryReceiptActions } from "@/components/ReceiptDialog";
 import { WalletDashboard } from "@/components/admin/WalletDashboard";
 import { UserSettingsManager } from "@/components/admin/UserSettingsManager";
 import { StoreLocationManager } from "@/components/admin/StoreLocationManager";
+import { AdminPunchDialog } from "@/components/admin/AdminPunchDialog";
+import { EditEntryDialog } from "@/components/admin/EditEntryDialog";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -54,6 +56,8 @@ export default function AdminPage() {
   const [useDateRange, setUseDateRange] = useState(false);
   const [loading, setLoading] = useState(true);
   const { viewEntry, ReceiptDialog } = useReceiptDialog();
+  const [showPunchDialog, setShowPunchDialog] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<TimeEntryRow | null>(null);
 
   useEffect(() => { fetchProfiles(); }, []);
   useEffect(() => { fetchEntries(); }, [selectedUser, dateFilter, dateFrom, dateTo, useDateRange]);
@@ -367,22 +371,27 @@ export default function AdminPage() {
                     ? `${new Date(dateFrom + "T12:00:00").toLocaleDateString("pt-BR")} — ${new Date(dateTo + "T12:00:00").toLocaleDateString("pt-BR")}`
                     : `— ${new Date(dateFilter + "T12:00:00").toLocaleDateString("pt-BR")}`}
                 </CardTitle>
-                {entries.length > 0 && (
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => {
-                      const el = document.getElementById("entries-export");
-                      if (el) exportElementAsPNG(el, `ponto-${useDateRange ? `${dateFrom}_${dateTo}` : dateFilter}`);
-                    }}>
-                      <FileImage className="w-4 h-4 mr-1" /> PNG
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => {
-                      const el = document.getElementById("entries-export");
-                      if (el) exportElementAsPDF(el, `ponto-${useDateRange ? `${dateFrom}_${dateTo}` : dateFilter}`);
-                    }}>
-                      <Download className="w-4 h-4 mr-1" /> PDF
-                    </Button>
-                  </div>
-                )}
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => setShowPunchDialog(true)}>
+                    <Plus className="w-4 h-4 mr-1" /> Registrar Ponto
+                  </Button>
+                  {entries.length > 0 && (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => {
+                        const el = document.getElementById("entries-export");
+                        if (el) exportElementAsPNG(el, `ponto-${useDateRange ? `${dateFrom}_${dateTo}` : dateFilter}`);
+                      }}>
+                        <FileImage className="w-4 h-4 mr-1" /> PNG
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => {
+                        const el = document.getElementById("entries-export");
+                        if (el) exportElementAsPDF(el, `ponto-${useDateRange ? `${dateFrom}_${dateTo}` : dateFilter}`);
+                      }}>
+                        <Download className="w-4 h-4 mr-1" /> PDF
+                      </Button>
+                    </>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {entries.length === 0 ? (
@@ -400,6 +409,7 @@ export default function AdminPage() {
                           <TableHead>Localização</TableHead>
                           <TableHead>Foto</TableHead>
                           <TableHead>Comprovante</TableHead>
+                          <TableHead>Ações</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -441,6 +451,11 @@ export default function AdminPage() {
                                 onView={viewEntry}
                               />
                             </TableCell>
+                            <TableCell>
+                              <Button size="sm" variant="ghost" onClick={() => setEditingEntry(entry)}>
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -464,6 +479,18 @@ export default function AdminPage() {
         </Tabs>
       </main>
       <ReceiptDialog />
+      <AdminPunchDialog
+        open={showPunchDialog}
+        onOpenChange={setShowPunchDialog}
+        profiles={approvedProfiles}
+        onSuccess={fetchEntries}
+      />
+      <EditEntryDialog
+        open={!!editingEntry}
+        onOpenChange={(open) => { if (!open) setEditingEntry(null); }}
+        entry={editingEntry}
+        onSuccess={fetchEntries}
+      />
     </div>
   );
 }
