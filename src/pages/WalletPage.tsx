@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Wallet, ArrowLeft, TrendingUp, TrendingDown, Send, Banknote, History } from "lucide-react";
 import { toast } from "sonner";
+import { TransactionDetailDialog } from "@/components/TransactionDetailDialog";
 
 interface Transaction {
   id: string;
