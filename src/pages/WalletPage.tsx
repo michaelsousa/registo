@@ -210,8 +210,7 @@ const WalletPage = () => {
             <p className="text-center text-muted-foreground text-sm py-8">Nenhuma transação ainda</p>
           ) : (
             <div className="flex flex-col gap-2">
-              {transactions.map((tx) => (
-                <Card key={tx.id} className="overflow-hidden">
+                <Card key={tx.id} className="overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all" onClick={() => setSelectedTx(tx)}>
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.type === "credit" ? "bg-success/10" : "bg-destructive/10"}`}>
@@ -233,7 +232,6 @@ const WalletPage = () => {
                     </span>
                   </CardContent>
                 </Card>
-              ))}
             </div>
           )}
         </div>
