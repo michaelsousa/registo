@@ -410,6 +410,7 @@ export default function AdminPage() {
                           <TableHead>Foto</TableHead>
                           <TableHead>Comprovante</TableHead>
                           <TableHead>Ações</TableHead>
+                        </TableRow>
                       </TableHeader>
                       <TableBody>
                         {entries.map((entry) => (
