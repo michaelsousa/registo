@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Users, Clock, MapPin, Search, LogOut, ArrowLeft, Calendar, Shield, UserCheck, UserX, Wallet, Settings, MapPinned, Download, FileImage, Eye,
+  Users, Clock, MapPin, Search, LogOut, ArrowLeft, Calendar, Shield, UserCheck, UserX, Wallet, Settings, MapPinned, Download, FileImage, Eye, Plus, Pencil,
 } from "lucide-react";
 import { exportElementAsPNG, exportElementAsPDF } from "@/lib/exportUtils";
 import { useReceiptDialog, EntryReceiptActions } from "@/components/ReceiptDialog";
