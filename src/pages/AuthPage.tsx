@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,13 +7,31 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Fingerprint, Mail, Lock, User } from "lucide-react";
 import { toast } from "sonner";
 
+const DEFAULT_EMAIL = "admin@pontofacil.com";
+const DEFAULT_PASSWORD = "admin123";
+
 export default function AuthPage() {
   const { signIn, signUp } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState("admin@pontofacil.com");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState(() => localStorage.getItem("saved_email") || DEFAULT_EMAIL);
+  const [password, setPassword] = useState(() => localStorage.getItem("saved_password") || DEFAULT_PASSWORD);
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Cria o admin padrão no primeiro acesso (se ainda não existir)
+  useEffect(() => {
+    if (localStorage.getItem("default_admin_ready")) return;
+    (async () => {
+      try {
+        await signUp(DEFAULT_EMAIL, DEFAULT_PASSWORD, "Administrador");
+      } catch {
+        // já existe — ignora
+      } finally {
+        localStorage.setItem("default_admin_ready", "1");
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +42,8 @@ export default function AuthPage() {
         toast.success("Conta criada! Verifique seu email para confirmar.");
       } else {
         await signIn(email, password);
+        localStorage.setItem("saved_email", email);
+        localStorage.setItem("saved_password", password);
         toast.success("Login realizado com sucesso!");
       }
     } catch (err: any) {
