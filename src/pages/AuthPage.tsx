@@ -10,8 +10,8 @@ import { toast } from "sonner";
 export default function AuthPage() {
   const { signIn, signUp } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("admin@pontofacil.com");
+  const [password, setPassword] = useState("admin123");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -99,6 +99,9 @@ export default function AuthPage() {
             </Button>
           </form>
           <div className="mt-4 text-center">
+            <p className="text-xs text-muted-foreground mb-2">
+              Acesso padrão: admin@pontofacil.com / admin123
+            </p>
             <button
               type="button"
               onClick={() => setIsSignUp(!isSignUp)}
